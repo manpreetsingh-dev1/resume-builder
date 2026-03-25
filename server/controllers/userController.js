@@ -53,7 +53,8 @@ export const registerUser = async (req, res) => {
         return res.status(201).json({ message: 'User created successfully', token, user: newUser })
     }
     catch (error) {
-        return res.status(500).json({ message: error.message })
+        console.error("registerUser error:", error);
+        return res.status(500).json({ message: "Failed to register user." })
 
     }
 }
@@ -86,7 +87,8 @@ if (!isMatch) {
         return res.status(200).json({ message: 'login successfully', token, user: user })
     }
     catch (error) {
-        return res.status(500).json({ message: error.message })
+        console.error("loginUser error:", error);
+        return res.status(500).json({ message: "Failed to login user." })
 
     }
 }
@@ -107,7 +109,8 @@ export const getUserById = async (req, res) => {
 
     }
     catch (error) {
-        return res.status(500).json({ message: error.message })
+        console.error("getUserById error:", error);
+        return res.status(500).json({ message: "Failed to load user data." })
 
     }
 }
@@ -122,6 +125,7 @@ export const getUserResumes=async(req,res)=>{
 const resumes= await Resume.find({userId}).sort({ updatedAt: -1 })
 return res.status(200).json({resumes: resumes.map(normalizeResume)})
     } catch (error) {
-    return res.status(500).json({ message: error.message })
+    console.error("getUserResumes error:", error);
+    return res.status(500).json({ message: "Failed to load resumes." })
 }
 }

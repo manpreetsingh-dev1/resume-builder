@@ -9,6 +9,10 @@ import feedbackRouter from "./routes/feedbackRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = [
+  process.env.FRONTEND_URL?.trim(),
+  "http://localhost:5173",
+].filter(Boolean);
 
 // database connection
 await connectDB();
@@ -16,16 +20,39 @@ await connectDB();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
+  })
+);
 
 // Basic route
 app.get("/", (req, res) => {
   res.send("Server is live...");
-})
-app.use ('/api/users',userRouter)
-app.use('/api/resumes',resumeRouter)
-app.use('/api/ai',aiRouter)
-app.use('/api/feedback', feedbackRouter)
+});
+app.use("/api/users", userRouter);
+app.use("/api/resumes", resumeRouter);
+app.use("/api/ai", aiRouter);
+app.use("/api/feedback", feedbackRouter);
+
+app.use((error, req, res, next) => {
+  if (error.message === "Not allowed by CORS") {
+    return res.status(403).json({ message: "CORS blocked this request." });
+  }
+
+  return next(error);
+});
+
+app.use((error, req, res, next) => {
+  console.error(error);
+  return res.status(500).json({ message: "Internal server error" });
+});
 
 // Start server
 app.listen(PORT, () => {

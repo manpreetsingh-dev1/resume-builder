@@ -33,7 +33,8 @@ export const createResume = async (req, res) => {
             .status(201)
             .json({ message: "Resume created successfully", resume: normalizeResume(newResume) });
     } catch (error) {
-        return res.status(400).json({ message: error.message });
+        console.error("createResume error:", error);
+        return res.status(500).json({ message: "Failed to create resume." });
     }
 };
 
@@ -44,11 +45,16 @@ export const deleteResume = async (req, res) => {
         const userId = req.userId;
         const { resumeId } = req.params;
 
-        await Resume.findOneAndDelete({ userId, _id: resumeId })
+        const deletedResume = await Resume.findOneAndDelete({ userId, _id: resumeId });
+
+        if (!deletedResume) {
+            return res.status(404).json({ message: "Resume not found" });
+        }
 
         return res.status(201).json({ message: "Resume delete successfully" });
     } catch (error) {
-        return res.status(400).json({ message: error.message });
+        console.error("deleteResume error:", error);
+        return res.status(500).json({ message: "Failed to delete resume." });
     }
 };
 
@@ -105,6 +111,10 @@ export const updateResume = async (req, res) => {
         }
 
         if (image) {
+            if (!imagekit) {
+                return res.status(500).json({ message: "Image upload is not configured." });
+            }
+
             const imageBufferData = fs.createReadStream(image.path)
             const imageTransformation = [
                 "w-300",
@@ -127,14 +137,19 @@ export const updateResume = async (req, res) => {
             });
             resumeDataCopy.personal_info.image = response.url
         }
-        const resume = await Resume.findByIdAndUpdate(
+        const resume = await Resume.findOneAndUpdate(
             { userId, _id: resumeId },
             resumeDataCopy,
-            { new: true }
+            { new: true, runValidators: true }
         );
+
+        if (!resume) {
+            return res.status(404).json({ message: "Resume not found" });
+        }
 
         return res.status(200).json({ message: "Saved successfully", resume: normalizeResume(resume) });
     } catch (error) {
-        return res.status(400).json({ message: error.message });
+        console.error("updateResume error:", error);
+        return res.status(500).json({ message: "Failed to save resume." });
     }
 };
