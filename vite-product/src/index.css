@@ -1,0 +1,64 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+@import "tailwindcss";
+
+:root {
+  --vintage-cream: #fff7e3;
+  --vintage-paper: #fffbf1;
+  --vintage-sand: #ffe3b3;
+  --vintage-clay: #0ab68b;
+  --vintage-bronze: #028174;
+  --vintage-sage: #92de8b;
+  --vintage-ink: #025c52;
+  --vintage-muted: #3e7b70;
+  --vintage-border: #bde7c1;
+}
+
+* {
+  font-family: "Manrope", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--vintage-cream);
+  color: var(--vintage-ink);
+}
+
+::selection {
+  background: #92de8b;
+  color: #025c52;
+}
+
+.font-display {
+  font-family: "Cormorant Garamond", serif;
+}
+
+.vintage-app-shell {
+  background:
+    radial-gradient(circle at top left, rgba(10, 182, 139, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(146, 222, 139, 0.2), transparent 32%),
+    linear-gradient(180deg, #fffdf5 0%, #fff3d5 100%);
+}
+
+@layer base {
+  button {
+    @apply cursor-pointer;
+  }
+
+  input:not([type="checkbox"]),
+  textarea {
+    @apply rounded-2xl border px-4 py-3 outline-none transition;
+    border-color: var(--vintage-border);
+    background: #fffaf3;
+    color: var(--vintage-ink);
+  }
+
+  input:not([type="checkbox"]):focus,
+  textarea:focus {
+    border-color: var(--vintage-bronze);
+    box-shadow: 0 0 0 4px rgba(2, 129, 116, 0.12);
+  }
+}
