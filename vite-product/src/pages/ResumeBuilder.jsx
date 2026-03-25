@@ -96,7 +96,7 @@ const ResumeBuilder = () => {
       setResumeData({ ...resumeData, public: !resumeData.public });
       toast.success(data.message);
     } catch (error) {
-      console.log("Error saving resume", error);
+      toast.error(error?.response?.data?.message || error.message);
     }
   };
 
@@ -107,7 +107,7 @@ const ResumeBuilder = () => {
     if (navigator.share) {
       navigator.share({ url: resumeUrl, text: "My Resume" });
     } else {
-      alert("Share not supported on this browser.");
+      toast.error("Sharing is not supported on this browser.");
     }
   };
 
@@ -140,7 +140,7 @@ const ResumeBuilder = () => {
       setResumeData(data.resume);
       toast.success(data.message);
     } catch (error) {
-      console.log("Error saving resume", error);
+      toast.error(error?.response?.data?.message || error.message);
     }
   };
 

@@ -31,8 +31,8 @@ const App = () => {
             dispatch(login({ token, user: data.user }));
           }
         }
-      } catch (error) {
-        console.log("AUTH ERROR:", error.response?.data || error.message);
+      } catch {
+        localStorage.removeItem("token");
       } finally {
         dispatch(setLoading(false));
       }
@@ -75,7 +75,7 @@ const App = () => {
 
         <Route path="app" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="Builder/:resumeId" element={<ResumeBuilder />} />
+          <Route path="builder/:resumeId" element={<ResumeBuilder />} />
         </Route>
 
         <Route path="view/:resumeId" element={<Preview />} />

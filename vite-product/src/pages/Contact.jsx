@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { ArrowLeftIcon, Mail, MessageSquareText, User } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const WHATSAPP_NUMBER = "8196937984";
+import api from "../configs/api";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -23,15 +22,7 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const message = [
-        "Hello, I have feedback for Resume Builder.",
-        `Name: ${formData.name}`,
-        `Email: ${formData.email}`,
-        `Feedback: ${formData.message}`,
-      ].join("\n");
-
-      const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      await api.post("/api/feedback", formData);
       toast.success("Thanks for your feedback!");
       setFormData({
         name: "",
@@ -90,9 +81,9 @@ const Contact = () => {
                   <Mail className="size-5" />
                 </div>
                 <div>
-                  <h2 className="font-medium text-[#4d4336]">Direct to WhatsApp</h2>
+                  <h2 className="font-medium text-[#4d4336]">Delivered through the app</h2>
                   <p className="text-sm text-[#6f5d49]">
-                    Your message opens directly in WhatsApp with your details and feedback pre-filled.
+                    Feedback is submitted to the backend so you can manage delivery from your deployment config.
                   </p>
                 </div>
               </div>

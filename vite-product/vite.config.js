@@ -1,17 +1,22 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [tailwindcss(), react()],
-  server: {
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
+export default defineConfig(async () => {
+  const [{ default: react }, { default: tailwindcss }] = await Promise.all([
+    import('@vitejs/plugin-react'),
+    import('@tailwindcss/vite'),
+  ])
+
+  return {
+    plugins: [tailwindcss(), react()],
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:5000",
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
-  },
+  }
 })
