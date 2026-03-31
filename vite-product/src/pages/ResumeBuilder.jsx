@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeftIcon,
   Briefcase,
@@ -30,6 +30,7 @@ import api from "../configs/api";
 
 const ResumeBuilder = () => {
   const { resumeId: routeResumeId } = useParams();
+  const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
 
   const [resumeData, setResumeData] = useState({
@@ -75,6 +76,8 @@ const ResumeBuilder = () => {
     const loadExistingResume = async () => {
       if (!trimmedRouteResumeId || trimmedRouteResumeId === "undefined") {
         console.error("Invalid resumeId from route:", routeResumeId);
+        toast.error("Invalid resume link. Redirecting to your dashboard.");
+        navigate("/app", { replace: true });
         return;
       }
 
@@ -96,7 +99,7 @@ const ResumeBuilder = () => {
     if (token && trimmedRouteResumeId && trimmedRouteResumeId !== "undefined") {
       loadExistingResume();
     }
-  }, [routeResumeId, token]);
+  }, [navigate, routeResumeId, token]);
 
   const changeResumeVisibility = async () => {
     try {

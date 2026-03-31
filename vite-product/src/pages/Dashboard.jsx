@@ -57,6 +57,18 @@ const Dashboard = () => {
     : [];
 
   const recentResume = safeResumes[0];
+  const openResumeBuilder = (resumeId) => {
+    const normalizedResumeId =
+      typeof resumeId === "string" ? resumeId.trim() : "";
+
+    if (!normalizedResumeId || normalizedResumeId === "undefined") {
+      console.error("Refusing to navigate with invalid resumeId:", resumeId);
+      toast.error("That resume is missing a valid ID. Please refresh and try again.");
+      return;
+    }
+
+    navigate(`/app/builder/${normalizedResumeId}`);
+  };
 
   const getPdfImageObject = (page, imageName) =>
     new Promise((resolve) => {
@@ -250,7 +262,7 @@ const Dashboard = () => {
       setAllResumes([...allResumes, data.resume]);
       setTitle("");
       setShowCreateResume(false);
-      navigate(`/app/builder/${data.resume?._id}`);
+      openResumeBuilder(data.resume?._id);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
     }
@@ -287,7 +299,7 @@ const Dashboard = () => {
       setProfileImage(null);
       setRemoveUploadBackground(false);
       setShowUploadResume(false);
-      navigate(`/app/builder/${data.resumeId}`);
+      openResumeBuilder(data.resumeId);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
     } finally {
@@ -585,7 +597,7 @@ const Dashboard = () => {
                         console.error("Invalid resume:", resume);
                         return;
                       }
-                      navigate(`/builder/${resume._id}`);
+                      openResumeBuilder(resume._id);
                     }}
                     className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-[#ddcfbc] bg-[#fffaf3] text-left transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(93,74,55,0.12)]"
                   >
