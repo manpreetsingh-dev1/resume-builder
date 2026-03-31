@@ -1,110 +1,121 @@
-import { Mail, User2Icon ,Lock} from "lucide-react";
+import { Lock, Mail, User2Icon } from "lucide-react";
 import React from "react";
+import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { login } from "../app/features/authSlice";
-import toast from "react-hot-toast";
-import api from '../configs/api';
+import api from "../configs/api";
 
 const Login = () => {
-    const query= new URLSearchParams(window.location.search)
+  const query = new URLSearchParams(window.location.search);
+  const urlState = query.get("state");
 
-    const urlState=query.get('state')
-     
-    const [state, setState] = React.useState(urlState||"login")
+  const [state, setState] = React.useState(urlState || "login");
+  const [formData, setFormData] = React.useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
-    const [formData, setFormData] = React.useState({
-        name: '',
-        email: '',
-        password: ''
-    })
-    const dispatch= useDispatch()
+  const dispatch = useDispatch();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        try {
-          const {data}=await api.post(`/users/${state}`,formData)
-          dispatch(login(data))
-          localStorage.setItem('token',data.token)
-          toast.success(data.message)
-        } catch (error) {
-          toast(error?.response?.data?.message||error.message)
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    try {
+      const { data } = await api.post(`/users/${state}`, formData);
+      dispatch(login(data));
+      localStorage.setItem("token", data.token);
+      toast.success(data.message);
+    } catch (error) {
+      toast(error?.response?.data?.message || error.message);
     }
+  };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({ ...prev, [name]: value }))
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center px-4" style={{ background: "linear-gradient(135deg, #f7f5f2 0%, #f5f3ef 100%)" }}>
       <form
         onSubmit={handleSubmit}
-        className="sm:w-87.5 w-full text-center border border-gray-300/60 rounded-2xl px-8 bg-white"
+        className="premium-card w-full rounded-[28px] px-8 py-10 text-center sm:w-[26rem]"
       >
-        <h1 className="text-gray-900 text-3xl mt-10 font-medium">
+        <h1 className="premium-heading text-4xl">
           {state === "login" ? "Login" : "Sign up"}
         </h1>
-        <p className="text-gray-500 text-sm mt-2">Please {state} to continue</p>
+        <p className="text-[var(--premium-slate)] mt-2 text-sm">
+          Please {state} to continue
+        </p>
+
         {state !== "login" && (
-          <div className="flex items-center mt-6 w-full bg-white border border-gray-300/80 h-12 rounded-full overflow-hidden pl-6 gap-2">
-           <User2Icon size={16} color='#687280'/>
+          <div className="mt-6 flex h-12 w-full items-center gap-2 overflow-hidden rounded-full border border-[var(--premium-slate)] bg-white pl-6">
+            <User2Icon size={16} className="text-[var(--premium-gold)]" />
             <input
               type="text"
               name="name"
               placeholder="Name"
-              className="border-none outline-none ring-0"
+              className="border-none bg-transparent outline-none ring-0 text-[var(--premium-charcoal)]"
               value={formData.name}
               onChange={handleChange}
               required
             />
           </div>
         )}
-        <div className="flex items-center w-full mt-4 bg-white border border-gray-300/80 h-12 rounded-full overflow-hidden pl-6 gap-2">
-         <Mail size={13} color='#687280'/>
+
+        <div className="mt-4 flex h-12 w-full items-center gap-2 overflow-hidden rounded-full border border-[var(--premium-slate)] bg-white pl-6">
+          <Mail size={13} className="text-[var(--premium-gold)]" />
           <input
             type="email"
             name="email"
             placeholder="Email id"
-            className="border-none outline-none ring-0"
+            className="border-none bg-transparent outline-none ring-0 text-[var(--premium-charcoal)]"
             value={formData.email}
             onChange={handleChange}
             required
           />
         </div>
-        <div className="flex items-center mt-4 w-full bg-white border border-gray-300/80 h-12 rounded-full overflow-hidden pl-6 gap-2">
-          <Lock size={13} color='#687280'/>
+
+        <div className="mt-4 flex h-12 w-full items-center gap-2 overflow-hidden rounded-full border border-[var(--premium-slate)] bg-white pl-6">
+          <Lock size={13} className="text-[var(--premium-gold)]" />
           <input
             type="password"
             name="password"
             placeholder="Password"
-            className="border-none outline-none ring-0"
+            className="border-none bg-transparent outline-none ring-0 text-[var(--premium-charcoal)]"
             value={formData.password}
             onChange={handleChange}
             required
           />
         </div>
-        <div className="mt-4 text-left text-green-500">
-          <button className="text-sm" type="reset">
+
+        <div className="mt-4 text-left">
+          <button className="text-sm text-[var(--premium-gold)] hover:text-[var(--premium-charcoal)]" type="reset">
             Forget password?
           </button>
         </div>
+
         <button
           type="submit"
-          className="mt-2 w-full h-11 rounded-full text-white bg-green-500 hover:opacity-90 transition-opacity"
+          className="premium-btn-primary mt-3 w-full rounded-full py-3 text-sm font-medium"
         >
           {state === "login" ? "Login" : "Sign up"}
         </button>
+
         <p
           onClick={() =>
             setState((prev) => (prev === "login" ? "register" : "login"))
           }
-          className="text-gray-500 text-sm mt-3 mb-11"
+          className="text-[var(--premium-slate)] mt-4 text-sm"
         >
           {state === "login"
             ? "Don't have an account?"
             : "Already have an account?"}{" "}
-          <a href="#" className="text-green-500 hover:underline">
+          <a
+            href="#"
+            className="font-medium text-[var(--premium-gold)] hover:text-[var(--premium-charcoal)]"
+          >
             click here
           </a>
         </p>

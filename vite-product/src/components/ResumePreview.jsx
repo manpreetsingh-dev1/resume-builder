@@ -87,10 +87,10 @@ const ResumePreview = ({
   };
 
   return (
-    <div className="w-full rounded-[28px] bg-[#efe4d4] p-3 shadow-[0_20px_50px_rgba(93,74,55,0.08)]">
+    <div className="w-full rounded-[28px] bg-[var(--vintage-highlight)] p-3 shadow-[0_20px_50px_rgba(83,43,43,0.08)]">
       <div
         id="resume-preview"
-        className={`overflow-hidden rounded-[22px] border border-[#dfd2c2] bg-[#fbf6ef] print:shadow-none print:border-none ${classes} ${className}`.trim()}
+        className={`overflow-hidden rounded-[22px] border border-[var(--vintage-border)] bg-[var(--vintage-paper)] print:shadow-none print:border-none ${classes} ${className}`.trim()}
       >
         {renderTemplate()}
       </div>

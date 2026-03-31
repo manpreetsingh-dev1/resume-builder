@@ -48,23 +48,23 @@ const App = () => {
         toastOptions={{
           duration: 3200,
           style: {
-            background: "#fffbf1",
-            color: "#025c52",
-            border: "1px solid #bde7c1",
+            background: "var(--vintage-paper)",
+            color: "var(--vintage-walnut)",
+            border: "1px solid var(--vintage-border)",
             borderRadius: "18px",
-            boxShadow: "0 18px 50px rgba(2, 129, 116, 0.14)",
+            boxShadow: "0 18px 50px rgba(83, 43, 43, 0.12)",
             padding: "14px 16px",
           },
           success: {
             iconTheme: {
-              primary: "#0AB68B",
-              secondary: "#FFFBF1",
+              primary: "#EEBB22",
+              secondary: "#FFFDFE",
             },
           },
           error: {
             iconTheme: {
-              primary: "#028174",
-              secondary: "#FFFBF1",
+              primary: "#4B8A7E",
+              secondary: "#FFFDFE",
             },
           },
         }}

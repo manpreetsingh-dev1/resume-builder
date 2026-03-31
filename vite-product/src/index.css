@@ -3,15 +3,25 @@
 @import "tailwindcss";
 
 :root {
-  --vintage-cream: #fff7e3;
-  --vintage-paper: #fffbf1;
-  --vintage-sand: #ffe3b3;
-  --vintage-clay: #0ab68b;
-  --vintage-bronze: #028174;
-  --vintage-sage: #92de8b;
-  --vintage-ink: #025c52;
-  --vintage-muted: #3e7b70;
-  --vintage-border: #bde7c1;
+  /* Vintage/Template Colors (for resume templates only) */
+  --vintage-cream: #fffdfe;
+  --vintage-olive: #4b8a7e;
+  --vintage-gold: #eebb22;
+  --vintage-walnut: #532b2b;
+  --vintage-paper: #fffaf2;
+  --vintage-border: rgba(83, 43, 43, 0.16);
+  --vintage-shadow: rgba(83, 43, 43, 0.12);
+  --vintage-highlight: rgba(238, 187, 34, 0.18);
+  --vintage-muted: rgba(83, 43, 43, 0.72);
+
+  /* Premium UI Colors */
+  --premium-midnight: #1e2a38;
+  --premium-gold: #d4af37;
+  --premium-ivory: #f7f5f2;
+  --premium-charcoal: #2c2c2c;
+  --premium-slate: #6c7a89;
+  --premium-dark-bg: #0f1620;
+  --premium-light-gold: #d4af3780;
 }
 
 * {
@@ -23,13 +33,13 @@ html {
 }
 
 body {
-  background: var(--vintage-cream);
-  color: var(--vintage-ink);
+  background: var(--premium-ivory);
+  color: var(--premium-charcoal);
 }
 
 ::selection {
-  background: #92de8b;
-  color: #025c52;
+  background: var(--vintage-gold);
+  color: var(--vintage-walnut);
 }
 
 .font-display {
@@ -38,12 +48,16 @@ body {
 
 .vintage-app-shell {
   background:
-    radial-gradient(circle at top left, rgba(10, 182, 139, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(146, 222, 139, 0.2), transparent 32%),
-    linear-gradient(180deg, #fffdf5 0%, #fff3d5 100%);
+    radial-gradient(circle at top left, rgba(75, 138, 126, 0.16), transparent 30%),
+    radial-gradient(circle at top right, rgba(238, 187, 34, 0.14), transparent 28%),
+    linear-gradient(180deg, #fffdfe 0%, #fdf5e5 100%);
 }
 
 @layer base {
+  a {
+    color: var(--vintage-walnut);
+  }
+
   button {
     @apply cursor-pointer;
   }
@@ -51,14 +65,156 @@ body {
   input:not([type="checkbox"]),
   textarea {
     @apply rounded-2xl border px-4 py-3 outline-none transition;
-    border-color: var(--vintage-border);
-    background: #fffaf3;
-    color: var(--vintage-ink);
+    border-color: var(--premium-slate);
+    background: var(--premium-ivory);
+    color: var(--premium-charcoal);
   }
 
   input:not([type="checkbox"]):focus,
   textarea:focus {
-    border-color: var(--vintage-bronze);
-    box-shadow: 0 0 0 4px rgba(2, 129, 116, 0.12);
+    border-color: var(--premium-gold);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+  }
+}
+
+@layer components {
+  /* Premium UI Header */
+  .premium-navbar {
+    background: linear-gradient(135deg, var(--premium-midnight) 0%, #2d3e52 100%);
+    color: var(--premium-ivory);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: 0 8px 24px rgba(30, 42, 56, 0.12);
+  }
+
+  /* Premium Cards */
+  .premium-card {
+    background: var(--premium-ivory);
+    border: 1px solid rgba(108, 122, 137, 0.2);
+    box-shadow: 0 4px 16px rgba(30, 42, 56, 0.08);
+    color: var(--premium-charcoal);
+  }
+
+  .premium-card-dark {
+    background: rgba(30, 42, 56, 0.04);
+    border: 1px solid rgba(108, 122, 137, 0.15);
+  }
+
+  /* Premium Buttons */
+  .premium-btn-primary {
+    background: var(--premium-gold);
+    color: var(--premium-midnight);
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .premium-btn-primary:hover {
+    background: #e8c547;
+    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.28);
+    transform: translateY(-2px);
+  }
+
+  .premium-btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .premium-btn-secondary {
+    background: var(--premium-midnight);
+    color: var(--premium-gold);
+    border: 1.5px solid var(--premium-gold);
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .premium-btn-secondary:hover {
+    background: rgba(212, 175, 55, 0.08);
+  }
+
+  .premium-btn-outline {
+    background: transparent;
+    color: var(--premium-charcoal);
+    border: 1.5px solid var(--premium-slate);
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .premium-btn-outline:hover {
+    border-color: var(--premium-gold);
+    color: var(--premium-gold);
+    background: rgba(212, 175, 55, 0.04);
+  }
+
+  /* Section Headings */
+  .premium-heading {
+    color: var(--premium-midnight);
+    font-weight: 700;
+  }
+
+  .premium-subheading {
+    color: var(--premium-charcoal);
+    font-weight: 600;
+  }
+
+  .premium-label {
+    color: var(--premium-charcoal);
+    font-weight: 500;
+  }
+
+  /* Vintage Classes (for resume templates - preserved) */
+  .vintage-header-bar {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--vintage-olive) 94%, white 6%) 0%,
+      color-mix(in srgb, var(--vintage-olive) 72%, var(--vintage-walnut) 28%) 100%
+    );
+    color: var(--vintage-cream);
+    border: 1px solid rgba(255, 253, 254, 0.08);
+    box-shadow: 0 18px 44px rgba(75, 138, 126, 0.18);
+  }
+
+  .vintage-card {
+    background:
+      linear-gradient(180deg, rgba(255, 253, 254, 0.98) 0%, rgba(253, 245, 229, 0.96) 100%);
+    border: 1px solid var(--vintage-border);
+    box-shadow: 0 20px 48px var(--vintage-shadow);
+    color: var(--vintage-walnut);
+  }
+
+  .vintage-btn-primary {
+    background: var(--vintage-olive);
+    color: var(--vintage-cream);
+    border: 1px solid color-mix(in srgb, var(--vintage-olive) 82%, black 18%);
+    box-shadow: 0 14px 32px rgba(75, 138, 126, 0.2);
+  }
+
+  .vintage-btn-primary:hover {
+    background: color-mix(in srgb, var(--vintage-olive) 86%, black 14%);
+  }
+
+  .vintage-btn-secondary {
+    background: var(--vintage-highlight);
+    color: var(--vintage-walnut);
+    border: 1px solid rgba(238, 187, 34, 0.34);
+  }
+
+  .vintage-btn-secondary:hover {
+    background: rgba(238, 187, 34, 0.26);
+  }
+
+  .vintage-accent {
+    color: var(--vintage-gold);
+  }
+
+  .vintage-text {
+    color: var(--vintage-walnut);
+  }
+
+  .vintage-muted-text {
+    color: var(--vintage-muted);
+  }
+
+  .vintage-surface {
+    background: var(--vintage-paper);
   }
 }

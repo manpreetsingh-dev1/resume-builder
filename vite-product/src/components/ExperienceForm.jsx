@@ -8,6 +8,7 @@ const ExperienceForm = ({ data, onChange }) => {
 
 const {token}=useSelector(state=>state.auth)
 const [generatingIndex,setGeneratingIndex]=useState(-1)
+const [noExperience, setNoExperience] = useState(data.length === 0);
 
     const addExperience=()=>{
         const newExperience={
@@ -21,6 +22,15 @@ const [generatingIndex,setGeneratingIndex]=useState(-1)
         };
         onChange([...data,newExperience])
     }
+
+    const handleNoExperience = (e) => {
+      const isChecked = e.target.checked;
+      setNoExperience(isChecked);
+      if (isChecked) {
+        onChange([]); // Clear all experience when "No Experience" is checked
+      }
+    }
+
     const removeExperience=(index)=>{
         const updated=data.filter((_,i)=>i !==index);
         onChange(updated)
@@ -74,22 +84,36 @@ const [generatingIndex,setGeneratingIndex]=useState(-1)
             Add your Job Experience
           </p>
         </div>
-
-        <button onClick={addExperience} className="flex items-center gap-2 px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-purple-200 transition-colors">
-          <Plus className="size-4" />
-          Add Experience
-        </button>
       </div>
-      {data.length===0 ? (
 
-        <div className="text-center py-8 text-gray-500">
-           <Briefcase className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-           <p>No work experience added yet</p>
-           <p className="text-sm">Click "Add Experience" to get started</p>
-        </div>
+      {/* No Experience Checkbox */}
+      <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <input
+          type="checkbox"
+          checked={noExperience}
+          onChange={handleNoExperience}
+          className="w-5 h-5 rounded border-gray-300 text-yellow-500 focus:ring-2 focus:ring-yellow-400"
+        />
+        <span className="text-gray-700 font-medium">I don't have any professional work experience</span>
+      </label>
 
-      ):(
-        <div className="space-y-4">
+      {!noExperience && (
+        <>
+          <div className="flex justify-end">
+            <button onClick={addExperience} className="flex items-center gap-2 px-4 py-2 text-sm bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors font-medium">
+              <Plus className="size-4" />
+              Add Experience
+            </button>
+          </div>
+
+          {data.length===0 ? (
+            <div className="text-center py-8 text-gray-500">
+               <Briefcase className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+               <p>No work experience added yet</p>
+               <p className="text-sm">Click "Add Experience" to get started</p>
+            </div>
+          ):(
+            <div className="space-y-4">
 {data.map((experience,index)=>(
   <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
     <div className="flex justify-between items-start">
@@ -150,7 +174,9 @@ const [generatingIndex,setGeneratingIndex]=useState(-1)
 </div>
   </div>
 ))}
-        </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

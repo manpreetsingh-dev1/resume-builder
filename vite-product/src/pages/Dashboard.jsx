@@ -454,44 +454,42 @@ const Dashboard = () => {
   }, [token]);
 
   return (
-    <div className="px-4 py-8 text-[#4c3f31] md:px-8">
+    <div className="min-h-screen px-4 py-8 md:px-8">
       <div className="mx-auto max-w-7xl space-y-8">
         <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-          <div className="overflow-hidden rounded-[32px] border border-[#BDE7C1] bg-[radial-gradient(circle_at_top_left,_rgba(10,182,139,0.22),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(146,222,139,0.28),_transparent_30%),linear-gradient(135deg,_#028174_0%,_#0AB68B_55%,_#FFE3B3_158%)] p-8 text-[#FFFBF1] shadow-[0_24px_80px_rgba(2,129,116,0.18)]">
-            <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[#FFFBF1]">
+          <div className="bg-gradient-to-br from-[var(--premium-charcoal)] to-[#3a4a62] overflow-hidden rounded-[32px] p-8">
+            <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-[var(--premium-gold)]">
               Dashboard
             </p>
-            <h1 className="mt-5 max-w-2xl text-3xl font-semibold leading-tight md:text-5xl">
-              Welcome back{user?.name ? `, ${user.name}` : ""}. Build sharper
+            <h1 className="mt-5 max-w-2xl text-3xl font-semibold leading-tight text-white md:text-5xl">
+              Welcome back{user?.name ? `, ${user.name}` : ""}.Build sharper
               resumes with a cleaner workflow.
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#f7efe3]/90 md:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-200 md:text-base">
               Start a new resume, upload an existing one, or jump right back
               into your latest draft.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#f4e6d2]/80">
+                <p className="text-xs uppercase tracking-[0.22em] text-gray-300">
                   Total Resumes
                 </p>
-                <p className="mt-3 text-3xl font-semibold">
+                <p className="mt-3 text-3xl font-semibold text-[var(--vintage-gold)]">
                   {safeResumes.length}
                 </p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#f4e6d2]/80">
-                  Public Profiles
+                <p className="text-xs uppercase tracking-[0.22em] text-gray-300">
                 </p>
-                <p className="mt-3 text-3xl font-semibold">
+                <p className="mt-3 text-3xl font-semibold text-[var(--vintage-gold)]">
                   {safeResumes.filter((resume) => resume?.public).length}{" "}
                 </p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#f4e6d2]/80">
-                  Last Update
+                <p className="text-xs uppercase tracking-[0.22em] text-gray-300">
                 </p>
-                <p className="mt-3 text-lg font-semibold">
+                <p className="mt-3 text-lg font-semibold text-white">
                   {recentResume
                     ? new Date(recentResume.updatedAt).toLocaleDateString()
                     : "No drafts yet"}
@@ -502,10 +500,10 @@ const Dashboard = () => {
 
           <div>
             <div className="mb-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#028174]">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--premium-slate)]">
                 Quick Actions
               </p>
-              <p className="mt-1 text-sm text-[#3e7b70]">
+              <p className="vintage-muted-text mt-1 text-sm">
                 These cards start a new task right away.
               </p>
             </div>
@@ -513,18 +511,18 @@ const Dashboard = () => {
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
               <button
                 onClick={() => setShowCreateResume(true)}
-                className="group rounded-[28px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 text-left shadow-[0_20px_60px_rgba(2,129,116,0.07)] transition hover:-translate-y-1 hover:border-[#028174] hover:shadow-[0_24px_70px_rgba(10,182,139,0.12)]"
+                className="premium-card group rounded-[28px] p-6 text-left transition hover:-translate-y-1 hover:border-[var(--premium-gold)] hover:shadow-lg"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="rounded-2xl bg-[#E9F9E8] p-3 text-[#028174]">
+                  <div className="rounded-2xl bg-[var(--vintage-highlight)] p-3 text-[var(--vintage-olive)]">
                     <PlusIcon className="size-6" />
                   </div>
-                  <ArrowRight className="size-5 text-[#7FCF95] transition group-hover:translate-x-1 group-hover:text-[#028174]" />
+                  <ArrowRight className="vintage-accent size-5 transition group-hover:translate-x-1" />
                 </div>
-                <h2 className="mt-8 font-display text-3xl text-[#43372c]">
+                <h2 className="mt-8 font-display text-3xl vintage-text">
                   Create Resume
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-[#75614c]">
+                <p className="vintage-muted-text mt-2 text-sm leading-6">
                   Start from a blank canvas and craft a polished resume section
                   by section.
                 </p>
@@ -532,18 +530,18 @@ const Dashboard = () => {
 
               <button
                 onClick={() => setShowUploadResume(true)}
-                className="group rounded-[28px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 text-left shadow-[0_20px_60px_rgba(2,129,116,0.07)] transition hover:-translate-y-1 hover:border-[#0AB68B] hover:shadow-[0_24px_70px_rgba(10,182,139,0.12)]"
+                className="vintage-card group rounded-[28px] p-6 text-left transition hover:-translate-y-1 hover:border-[var(--vintage-gold)]"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="rounded-2xl bg-[#E9F9E8] p-3 text-[#0AB68B]">
+                  <div className="rounded-2xl bg-[var(--vintage-highlight)] p-3 text-[var(--vintage-olive)]">
                     <UploadCloudIcon className="size-6" />
                   </div>
-                  <ArrowRight className="size-5 text-[#7FCF95] transition group-hover:translate-x-1 group-hover:text-[#0AB68B]" />
+                  <ArrowRight className="vintage-accent size-5 transition group-hover:translate-x-1" />
                 </div>
-                <h2 className="mt-8 font-display text-3xl text-[#43372c]">
+                <h2 className="mt-8 font-display text-3xl vintage-text">
                   Upload Existing
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-[#75614c]">
+                <p className="vintage-muted-text mt-2 text-sm leading-6">
                   Parse an existing PDF resume, keep the essentials, and
                   continue editing in the builder.
                 </p>
@@ -554,55 +552,55 @@ const Dashboard = () => {
 
         <section>
           <div className="mb-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#028174]">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--vintage-olive)]">
               Workspace Summary
             </p>
-            <p className="mt-1 text-sm text-[#3e7b70]">
+            <p className="vintage-muted-text mt-1 text-sm">
               These blocks are only informational and do not open anything.
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
+            <div className="vintage-card rounded-[22px] p-4 shadow-[0_8px_24px_rgba(83,43,43,0.04)]">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-[#F4FFE7] p-2.5 text-[#028174]">
+                <div className="rounded-2xl bg-[var(--vintage-highlight)] p-2.5 text-[var(--vintage-olive)]">
                   <FileText className="size-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#025c52]">
+                  <p className="text-sm font-medium text-[var(--vintage-walnut)]">
                     Resume Library
                   </p>
-                  <p className="text-xs text-[#3e7b70]">
+                  <p className="vintage-muted-text text-xs">
                     Manage every draft from one place
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
+            <div className="vintage-card rounded-[22px] p-4 shadow-[0_8px_24px_rgba(83,43,43,0.04)]">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-[#FFF3D4] p-2.5 text-[#028174]">
+                <div className="rounded-2xl bg-[var(--vintage-highlight)] p-2.5 text-[var(--vintage-olive)]">
                   <Clock3 className="size-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#025c52]">
+                  <p className="text-sm font-medium text-[var(--vintage-walnut)]">
                     Fast Edits
                   </p>
-                  <p className="text-xs text-[#3e7b70]">
+                  <p className="vintage-muted-text text-xs">
                     Open, rename, and continue in a single click
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
+            <div className="vintage-card rounded-[22px] p-4 shadow-[0_8px_24px_rgba(83,43,43,0.04)]">
               <div className="flex items-center gap-3">
-                <div className="rounded-2xl bg-[#F4FFE7] p-2.5 text-[#0AB68B]">
+                <div className="rounded-2xl bg-[var(--vintage-highlight)] p-2.5 text-[var(--vintage-gold)]">
                   <Sparkles className="size-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#025c52]">
+                  <p className="text-sm font-medium text-[var(--vintage-walnut)]">
                     AI Assistance
                   </p>
-                  <p className="text-xs text-[#3e7b70]">
+                  <p className="vintage-muted-text text-xs">
                     Enhance imported and manually built resumes
                   </p>
                 </div>
@@ -611,30 +609,30 @@ const Dashboard = () => {
           </div>
         </section>
 
-        <section className="rounded-[30px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 shadow-[0_24px_70px_rgba(2,129,116,0.06)]">
+        <section className="premium-card rounded-[30px] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.06)]">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#9a876f]">
+              <p className="text-sm font-medium uppercase tracking-[0.22em] text-[var(--premium-slate)]">
                 Your Resumes
               </p>
-              <h2 className="font-display mt-2 text-4xl text-[#43372c]">
+              <h2 className="font-display mt-2 text-4xl text-[var(--premium-charcoal)]">
                 Recent drafts and published profiles
               </h2>
             </div>
-            <p className="text-sm text-[#75614c]">
+            <p className="text-[var(--premium-slate)] text-sm">
               Click any card to open the builder and keep editing.
             </p>
           </div>
 
           {allResumes.length === 0 ? (
-            <div className="rounded-[28px] border border-dashed border-[#d7c8b3] bg-[#f6eee3] px-6 py-16 text-center">
-              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[#e5d7c5] text-[#7b6854]">
+            <div className="rounded-[28px] border border-dashed border-gray-300 bg-gray-50 px-6 py-16 text-center">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[var(--premium-gold)]/10 text-[var(--premium-gold)]">
                 <FilePenLineIcon className="size-7" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#4c3f31]">
+              <h3 className="mt-5 text-xl font-semibold text-[var(--premium-charcoal)]">
                 No resumes yet
               </h3>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#75614c]">
+              <p className="text-[var(--premium-slate)] mx-auto mt-2 max-w-md text-sm leading-6">
                 Create a fresh resume or upload an existing PDF to see your
                 drafts appear here.
               </p>
@@ -654,7 +652,7 @@ const Dashboard = () => {
                       }
                       openResumeBuilder(resume._id);
                     }}
-                    className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-[#ddcfbc] bg-[#fffaf3] text-left transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(93,74,55,0.12)]"
+                    className="premium-card group relative cursor-pointer overflow-hidden rounded-[28px] text-left transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(0,0,0,0.12)]"
                   >
                     <div
                       className={`h-34 bg-gradient-to-br ${colorClass} p-5 text-white`}
@@ -705,8 +703,8 @@ const Dashboard = () => {
 
                     <div className="space-y-4 p-5">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-[#7b6854]">Updated</span>
-                        <span className="font-medium text-[#4c3f31]">
+                        <span className="text-[var(--premium-slate)]">Updated</span>
+                        <span className="font-medium text-[var(--premium-charcoal)]">
                           {resume?.updatedAt
                             ? new Date(resume.updatedAt).toLocaleDateString()
                             : "N/A"}{" "}
@@ -714,13 +712,13 @@ const Dashboard = () => {
                       </div>
 
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-[#7b6854]">Template</span>
-                        <span className="font-medium capitalize text-[#4c3f31]">
+                        <span className="text-[var(--premium-slate)]">Template</span>
+                        <span className="font-medium capitalize text-[var(--premium-charcoal)]">
                           {(resume.template || "classic").replace("-", " ")}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between rounded-2xl bg-[#f1e7d9] px-4 py-3 text-sm text-[#6e5a46]">
+                      <div className="flex items-center justify-between rounded-2xl bg-[var(--premium-gold)]/10 px-4 py-3 text-sm text-[var(--premium-charcoal)]">
                         <span>Open builder</span>
                         <ArrowRight className="size-4 transition group-hover:translate-x-1" />
                       </div>
@@ -736,16 +734,16 @@ const Dashboard = () => {
           <form
             onSubmit={createResume}
             onClick={() => setShowCreateResume(false)}
-            className="fixed inset-0 z-10 flex items-center justify-center bg-[#2d241d]/65 backdrop-blur"
+            className="fixed inset-0 z-10 flex items-center justify-center bg-[rgba(83,43,43,0.55)] backdrop-blur"
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md rounded-[28px] border border-[#ddcfbc] bg-[#fbf6ef] p-7 shadow-[0_24px_80px_rgba(93,74,55,0.22)]"
+              className="vintage-card relative w-full max-w-md rounded-[28px] p-7 shadow-[0_24px_80px_rgba(83,43,43,0.22)]"
             >
-              <h2 className="font-display mb-2 text-4xl text-[#43372c]">
+              <h2 className="font-display mb-2 text-4xl text-[var(--vintage-walnut)]">
                 Create a Resume
               </h2>
-              <p className="mb-5 text-sm text-[#75614c]">
+              <p className="vintage-muted-text mb-5 text-sm">
                 Give your draft a clear title so you can find it quickly later.
               </p>
               <input
@@ -756,7 +754,7 @@ const Dashboard = () => {
                 className="mb-4 w-full"
                 required
               />
-              <button className="w-full rounded-2xl bg-[#9a7a52] py-3 text-[#fbf6ef] transition-colors hover:bg-[#846746]">
+              <button className="vintage-btn-primary w-full rounded-2xl py-3">
                 Create Resume
               </button>
               <XIcon

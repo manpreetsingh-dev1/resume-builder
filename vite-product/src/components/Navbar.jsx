@@ -15,21 +15,19 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#BDE7C1] bg-[#FFFBF1]/90 backdrop-blur">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 text-[#025c52] md:px-8">
-        <Link to="/" className="flex items-center">
-          <img src="/logo.svg" alt="logo" className="h-11 w-auto" />
-        </Link>
+    <header className="premium-navbar sticky top-0 z-40">
+      <nav className="mx-auto  max-w-7xl items-center  px-4 py-4 md:px-8">
+        
 
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="hidden items-center gap-2 rounded-full border border-[#BDE7C1] bg-[#F4FFE7] px-4 py-2 text-sm text-[#028174] sm:flex">
-            <Sparkles className="size-4 text-[#0AB68B]" />
+        <div className="flex items-center justify-around  gap-3 md:gap-4">
+          <div className="hidden items-center gap-2 rounded-full border border-[var(--premium-gold)]/20 bg-[var(--premium-gold)]/10 px-4 py-2 text-sm text-[var(--premium-ivory)] sm:flex">
+            <Sparkles className="text-[var(--premium-gold)] size-4" />
             <span>Hi, {user?.name}</span>
           </div>
 
           <Link
             to="/"
-            className="inline-flex items-center gap-2 rounded-full border border-[#92DE8B] bg-[#FFFBF1] px-5 py-2 text-sm font-medium text-[#028174] transition hover:border-[#028174] hover:bg-[#FFE3B3]"
+            className="premium-btn-outline bg-amber-50 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium"
           >
             <Home className="size-4" />
             Home
@@ -37,7 +35,7 @@ const Navbar = () => {
 
           <button
             onClick={logoutUser}
-            className="inline-flex items-center gap-2 rounded-full border border-[#028174] bg-[#028174] px-5 py-2 text-sm font-medium text-[#FFFBF1] transition hover:bg-[#0AB68B]"
+            className="premium-btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-medium"
           >
             <LogOut className="size-4" />
             Logout

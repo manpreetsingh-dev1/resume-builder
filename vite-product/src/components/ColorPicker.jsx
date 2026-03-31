@@ -3,10 +3,23 @@ import React, { useState } from "react";
 
 const ColorPicker = ({ selectedColor, onChange }) => {
   const colors = [
-    { name: "deep teal", value: "#028174" },
-    { name: "aqua teal", value: "#0AB68B" },
-    { name: "mint", value: "#92DE8B" },
-    { name: "sand", value: "#FFE3B3" },
+    { name: "olive", value: "#4B8A7E" },
+    { name: "gold", value: "#EEBB22" },
+    { name: "walnut", value: "#532B2B" },
+    { name: "cream", value: "#FFFDFE" },
+    { name: "slate", value: "#475569" },
+    { name: "emerald", value: "#10B981" },
+    { name: "sapphire", value: "#0EA5E9" },
+    { name: "amber", value: "#F59E0B" },
+    { name: "rose", value: "#F43F5E" },
+    { name: "purple", value: "#A855F7" },
+    { name: "teal", value: "#14B8A6" },
+    { name: "indigo", value: "#4F46E5" },
+    { name: "burgundy", value: "#7C2D12" },
+    { name: "navy", value: "#000E56" },
+    { name: "sage", value: "#6B7280" },
+    { name: "bronze", value: "#92400E" },
+    { name: "forest", value: "#15803D" },
   ];
 
   const [isOpen, setIsOpen] = useState(false);
@@ -15,14 +28,14 @@ const ColorPicker = ({ selectedColor, onChange }) => {
     <div className="relative">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 rounded-full border border-[#92DE8B] bg-[#FFFBF1] px-4 py-2 text-sm text-[#028174] transition hover:border-[#028174] hover:bg-[#FFE3B3]"
+        className="vintage-btn-secondary inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm"
       >
         <Palette size={15} />
         <span className="max-sm:hidden">Accent</span>
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-3 grid w-72 grid-cols-4 gap-3 rounded-[24px] border border-[#BDE7C1] bg-[#FFFBF1] p-4 shadow-[0_20px_50px_rgba(2,129,116,0.12)]">
+        <div className="vintage-card absolute left-0 right-0 top-full z-20 mt-3 grid w-80 grid-cols-6 gap-3 rounded-[24px] p-4">
           {colors.map((color) => (
             <div
               key={color.value}
@@ -41,7 +54,7 @@ const ColorPicker = ({ selectedColor, onChange }) => {
                   <Check className="mt-3 size-4 text-white" />
                 </div>
               )}
-              <p className="mt-1 text-center text-[11px] capitalize text-[#028174]">
+              <p className="mt-1 text-center text-[11px] capitalize text-[var(--vintage-walnut)]">
                 {color.name}
               </p>
             </div>

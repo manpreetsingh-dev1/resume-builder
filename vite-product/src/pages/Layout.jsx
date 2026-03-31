@@ -15,7 +15,7 @@ const Layout = () => {
   return (
     <div>
       {user ? (
-        <div className="vintage-app-shell min-h-screen">
+        <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #f7f5f2 0%, #f5f3ef 100%)" }}>
           <Navbar />
           <Outlet />
         </div>
