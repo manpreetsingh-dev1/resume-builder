@@ -69,6 +69,38 @@ const Dashboard = () => {
 
     navigate(`/app/builder/${normalizedResumeId}`);
   };
+  const loadUserResumes = async () => {
+    const { data } = await api.get("/users/resumes", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const resumes = Array.isArray(data?.resumes) ? data.resumes : [];
+    setAllResumes(resumes);
+    return resumes;
+  };
+
+  const pickNewestResume = (resumes = [], expectedTitle = "") => {
+    const normalizedTitle =
+      typeof expectedTitle === "string" ? expectedTitle.trim().toLowerCase() : "";
+
+    const matchingResumes = resumes.filter((resume) => {
+      if (!resume?._id) {
+        return false;
+      }
+
+      if (!normalizedTitle) {
+        return true;
+      }
+
+      return (resume.title || "").trim().toLowerCase() === normalizedTitle;
+    });
+
+    return [...matchingResumes].sort((firstResume, secondResume) => {
+      const firstDate = new Date(firstResume?.updatedAt || firstResume?.createdAt || 0).getTime();
+      const secondDate = new Date(secondResume?.updatedAt || secondResume?.createdAt || 0).getTime();
+      return secondDate - firstDate;
+    })[0];
+  };
 
   const getPdfImageObject = (page, imageName) =>
     new Promise((resolve) => {
@@ -252,9 +284,10 @@ const Dashboard = () => {
   const createResume = async (event) => {
     try {
       event.preventDefault();
+      const requestedTitle = title;
       const { data } = await api.post(
         "/resumes/create",
-        { title },
+        { title: requestedTitle },
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -266,7 +299,18 @@ const Dashboard = () => {
 
       if (!createdResumeId || createdResumeId === "undefined") {
         console.error("Create resume response is missing a valid ID:", data);
-        toast.error("Resume was created but no valid ID was returned.");
+        const resumes = await loadUserResumes();
+        const fallbackResume = pickNewestResume(resumes, requestedTitle);
+
+        if (!fallbackResume?._id) {
+          toast.error("Resume creation response was invalid. Please restart the backend and try again.");
+          return;
+        }
+
+        setTitle("");
+        setShowCreateResume(false);
+        toast.success("Resume created. Recovered draft from resume list.");
+        openResumeBuilder(fallbackResume._id);
         return;
       }
 
@@ -398,10 +442,7 @@ const Dashboard = () => {
       }
 
       try {
-        const { data } = await api.get("/users/resumes", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAllResumes(Array.isArray(data.resumes) ? data.resumes : []);
+        await loadUserResumes();
       } catch (error) {
         toast.error(error?.response?.data?.message || error.message);
       } finally {
