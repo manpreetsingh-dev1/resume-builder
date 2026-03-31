@@ -62,10 +62,12 @@ export const createResume = async (req, res) => {
     const { title } = req.body;
 
     const newResume = await Resume.create({ userId, title });
+    const normalizedResume = normalizeResume(newResume);
 
     return res.status(201).json({
       message: "Resume created successfully",
-      resume: normalizeResume(newResume),
+      resumeId: normalizedResume?._id || newResume?._id?.toString?.() || "",
+      resume: normalizedResume,
     });
   } catch (error) {
     console.error("createResume error:", error);

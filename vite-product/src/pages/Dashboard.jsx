@@ -259,10 +259,24 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setAllResumes([...allResumes, data.resume]);
+      const createdResumeId =
+        (typeof data?.resumeId === "string" ? data.resumeId.trim() : "") ||
+        (typeof data?.resume?._id === "string" ? data.resume._id.trim() : "") ||
+        (typeof data?.resume?.id === "string" ? data.resume.id.trim() : "");
+
+      if (!createdResumeId || createdResumeId === "undefined") {
+        console.error("Create resume response is missing a valid ID:", data);
+        toast.error("Resume was created but no valid ID was returned.");
+        return;
+      }
+
+      if (data?.resume && typeof data.resume === "object") {
+        setAllResumes((prev) => [...prev, data.resume]);
+      }
+
       setTitle("");
       setShowCreateResume(false);
-      openResumeBuilder(data.resume?._id);
+      openResumeBuilder(createdResumeId);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
     }
