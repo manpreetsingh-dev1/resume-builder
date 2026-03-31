@@ -38,6 +38,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/users", userRouter);
 app.use("/api/resumes", resumeRouter);
+console.log("Resume routes loaded");
 app.use("/api/ai", aiRouter);
 app.use("/api/feedback", feedbackRouter);
 

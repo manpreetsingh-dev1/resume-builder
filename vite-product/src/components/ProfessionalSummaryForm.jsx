@@ -18,7 +18,7 @@ const ProfessionalSummaryForm = ({data,onChange,setResumeData}) => {
 
         try {
             setIsGenerating(true)
-            const response =await api.post('/api/ai/enhance-pro-sum',{userContent:summary},{
+            const response =await api.post('/ai/enhance-pro-sum',{userContent:summary},{
           headers: { Authorization: `Bearer ${token}` }})
           setResumeData(prev=>({...prev,professional_summary:response.data.enhanceContent}))
         } catch (error) {

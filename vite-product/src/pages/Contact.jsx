@@ -22,7 +22,7 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      await api.post("/api/feedback", formData);
+      await api.post("/feedback", formData);
       toast.success("Thanks for your feedback!");
       setFormData({
         name: "",

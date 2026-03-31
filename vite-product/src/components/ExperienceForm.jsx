@@ -53,7 +53,7 @@ const [generatingIndex,setGeneratingIndex]=useState(-1)
       setGeneratingIndex(index)
 
       try {
-        const response = await api.post("/api/ai/enhance-job-desc", { userContent: prompt }, {
+        const response = await api.post("/ai/enhance-job-desc", { userContent: prompt }, {
           headers: { Authorization: `Bearer ${token}` },
         })
         updateExperience(index,"description",response.data.enhanceContent)

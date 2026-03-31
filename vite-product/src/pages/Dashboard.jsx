@@ -46,6 +46,18 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
+  const safeResumes = Array.isArray(allResumes)
+    ? allResumes.filter(
+        (resume) =>
+          resume &&
+          typeof resume === "object" &&
+          "_id" in resume &&
+          resume?._id,
+      )
+    : [];
+
+  const recentResume = safeResumes[0];
+
   const getPdfImageObject = (page, imageName) =>
     new Promise((resolve) => {
       let settled = false;
@@ -88,7 +100,11 @@ const Dashboard = () => {
     ) {
       const rgba = new Uint8ClampedArray(width * height * 4);
 
-      for (let srcIndex = 0, destIndex = 0; srcIndex < data.length; srcIndex += 3, destIndex += 4) {
+      for (
+        let srcIndex = 0, destIndex = 0;
+        srcIndex < data.length;
+        srcIndex += 3, destIndex += 4
+      ) {
         rgba[destIndex] = data[srcIndex];
         rgba[destIndex + 1] = data[srcIndex + 1];
         rgba[destIndex + 2] = data[srcIndex + 2];
@@ -131,7 +147,9 @@ const Dashboard = () => {
       );
     }
 
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png"),
+    );
 
     if (!blob) {
       return null;
@@ -161,7 +179,11 @@ const Dashboard = () => {
     let bestCandidate = null;
     let bestScore = 0;
 
-    for (let pageNumber = 1; pageNumber <= Math.min(pdf.numPages, 2); pageNumber += 1) {
+    for (
+      let pageNumber = 1;
+      pageNumber <= Math.min(pdf.numPages, 2);
+      pageNumber += 1
+    ) {
       const page = await pdf.getPage(pageNumber);
       const operatorList = await page.getOperatorList();
 
@@ -219,7 +241,7 @@ const Dashboard = () => {
     try {
       event.preventDefault();
       const { data } = await api.post(
-        "/api/resumes/create",
+        "/resumes/create",
         { title },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -228,7 +250,7 @@ const Dashboard = () => {
       setAllResumes([...allResumes, data.resume]);
       setTitle("");
       setShowCreateResume(false);
-      navigate(`/app/builder/${data.resume._id}`);
+      navigate(`/app/builder/${data.resume?._id}`);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
     }
@@ -256,7 +278,7 @@ const Dashboard = () => {
         formData.append("removeBackground", "yes");
       }
 
-      const { data } = await api.post("/api/ai/upload-resume", formData, {
+      const { data } = await api.post("/ai/upload-resume", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -302,7 +324,7 @@ const Dashboard = () => {
     try {
       event.preventDefault();
       const { data } = await api.put(
-        "/api/resumes/update/",
+        "/resumes/update/",
         { resumeId: editResumeId, resumeData: { title } },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -310,7 +332,9 @@ const Dashboard = () => {
       );
       setAllResumes(
         allResumes.map((resume) =>
-          resume._id === editResumeId ? { ...resume, title } : resume,
+          resume && resume?._id === editResumeId
+            ? { ...resume, title }
+            : resume,
         ),
       );
       setTitle("");
@@ -327,10 +351,12 @@ const Dashboard = () => {
         "Are you sure you want to delete this resume?",
       );
       if (confirm) {
-        const { data } = await api.delete(`/api/resumes/delete/${resumeId}`, {
+        const { data } = await api.delete(`/resumes/delete/${resumeId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAllResumes(allResumes.filter((resume) => resume._id !== resumeId));
+        setAllResumes(
+          allResumes.filter((resume) => resume && resume?._id !== resumeId),
+        );
         toast.success(data.message);
       }
     } catch (error) {
@@ -346,10 +372,10 @@ const Dashboard = () => {
       }
 
       try {
-        const { data } = await api.get("/api/users/resumes", {
+        const { data } = await api.get("/users/resumes", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAllResumes(data.resumes || []);
+        setAllResumes(Array.isArray(data.resumes) ? data.resumes : []);
       } catch (error) {
         toast.error(error?.response?.data?.message || error.message);
       } finally {
@@ -360,8 +386,6 @@ const Dashboard = () => {
     loadAllResumes();
   }, [token]);
 
-  const recentResume = allResumes[0];
-
   return (
     <div className="px-4 py-8 text-[#4c3f31] md:px-8">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -371,10 +395,12 @@ const Dashboard = () => {
               Dashboard
             </p>
             <h1 className="mt-5 max-w-2xl text-3xl font-semibold leading-tight md:text-5xl">
-              Welcome back{user?.name ? `, ${user.name}` : ""}. Build sharper resumes with a cleaner workflow.
+              Welcome back{user?.name ? `, ${user.name}` : ""}. Build sharper
+              resumes with a cleaner workflow.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#f7efe3]/90 md:text-base">
-              Start a new resume, upload an existing one, or jump right back into your latest draft.
+              Start a new resume, upload an existing one, or jump right back
+              into your latest draft.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -382,14 +408,16 @@ const Dashboard = () => {
                 <p className="text-xs uppercase tracking-[0.22em] text-[#f4e6d2]/80">
                   Total Resumes
                 </p>
-                <p className="mt-3 text-3xl font-semibold">{allResumes.length}</p>
+                <p className="mt-3 text-3xl font-semibold">
+                  {safeResumes.length}
+                </p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
                 <p className="text-xs uppercase tracking-[0.22em] text-[#f4e6d2]/80">
                   Public Profiles
                 </p>
                 <p className="mt-3 text-3xl font-semibold">
-                  {allResumes.filter((resume) => resume.public).length}
+                  {safeResumes.filter((resume) => resume?.public).length}{" "}
                 </p>
               </div>
               <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur">
@@ -416,37 +444,43 @@ const Dashboard = () => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-            <button
-              onClick={() => setShowCreateResume(true)}
-              className="group rounded-[28px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 text-left shadow-[0_20px_60px_rgba(2,129,116,0.07)] transition hover:-translate-y-1 hover:border-[#028174] hover:shadow-[0_24px_70px_rgba(10,182,139,0.12)]"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="rounded-2xl bg-[#E9F9E8] p-3 text-[#028174]">
-                  <PlusIcon className="size-6" />
+              <button
+                onClick={() => setShowCreateResume(true)}
+                className="group rounded-[28px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 text-left shadow-[0_20px_60px_rgba(2,129,116,0.07)] transition hover:-translate-y-1 hover:border-[#028174] hover:shadow-[0_24px_70px_rgba(10,182,139,0.12)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="rounded-2xl bg-[#E9F9E8] p-3 text-[#028174]">
+                    <PlusIcon className="size-6" />
+                  </div>
+                  <ArrowRight className="size-5 text-[#7FCF95] transition group-hover:translate-x-1 group-hover:text-[#028174]" />
                 </div>
-                <ArrowRight className="size-5 text-[#7FCF95] transition group-hover:translate-x-1 group-hover:text-[#028174]" />
-              </div>
-              <h2 className="mt-8 font-display text-3xl text-[#43372c]">Create Resume</h2>
-              <p className="mt-2 text-sm leading-6 text-[#75614c]">
-                Start from a blank canvas and craft a polished resume section by section.
-              </p>
-            </button>
+                <h2 className="mt-8 font-display text-3xl text-[#43372c]">
+                  Create Resume
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-[#75614c]">
+                  Start from a blank canvas and craft a polished resume section
+                  by section.
+                </p>
+              </button>
 
-            <button
-              onClick={() => setShowUploadResume(true)}
-              className="group rounded-[28px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 text-left shadow-[0_20px_60px_rgba(2,129,116,0.07)] transition hover:-translate-y-1 hover:border-[#0AB68B] hover:shadow-[0_24px_70px_rgba(10,182,139,0.12)]"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="rounded-2xl bg-[#E9F9E8] p-3 text-[#0AB68B]">
-                  <UploadCloudIcon className="size-6" />
+              <button
+                onClick={() => setShowUploadResume(true)}
+                className="group rounded-[28px] border border-[#BDE7C1] bg-[#FFFBF1] p-6 text-left shadow-[0_20px_60px_rgba(2,129,116,0.07)] transition hover:-translate-y-1 hover:border-[#0AB68B] hover:shadow-[0_24px_70px_rgba(10,182,139,0.12)]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="rounded-2xl bg-[#E9F9E8] p-3 text-[#0AB68B]">
+                    <UploadCloudIcon className="size-6" />
+                  </div>
+                  <ArrowRight className="size-5 text-[#7FCF95] transition group-hover:translate-x-1 group-hover:text-[#0AB68B]" />
                 </div>
-                <ArrowRight className="size-5 text-[#7FCF95] transition group-hover:translate-x-1 group-hover:text-[#0AB68B]" />
-              </div>
-              <h2 className="mt-8 font-display text-3xl text-[#43372c]">Upload Existing</h2>
-              <p className="mt-2 text-sm leading-6 text-[#75614c]">
-                Parse an existing PDF resume, keep the essentials, and continue editing in the builder.
-              </p>
-            </button>
+                <h2 className="mt-8 font-display text-3xl text-[#43372c]">
+                  Upload Existing
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-[#75614c]">
+                  Parse an existing PDF resume, keep the essentials, and
+                  continue editing in the builder.
+                </p>
+              </button>
             </div>
           </div>
         </section>
@@ -462,39 +496,51 @@ const Dashboard = () => {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-[#F4FFE7] p-2.5 text-[#028174]">
-                <FileText className="size-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[#025c52]">Resume Library</p>
-                <p className="text-xs text-[#3e7b70]">Manage every draft from one place</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-[#FFF3D4] p-2.5 text-[#028174]">
-                <Clock3 className="size-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[#025c52]">Fast Edits</p>
-                <p className="text-xs text-[#3e7b70]">Open, rename, and continue in a single click</p>
+            <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-[#F4FFE7] p-2.5 text-[#028174]">
+                  <FileText className="size-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#025c52]">
+                    Resume Library
+                  </p>
+                  <p className="text-xs text-[#3e7b70]">
+                    Manage every draft from one place
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-[#F4FFE7] p-2.5 text-[#0AB68B]">
-                <Sparkles className="size-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-[#025c52]">AI Assistance</p>
-                <p className="text-xs text-[#3e7b70]">Enhance imported and manually built resumes</p>
+            <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-[#FFF3D4] p-2.5 text-[#028174]">
+                  <Clock3 className="size-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#025c52]">
+                    Fast Edits
+                  </p>
+                  <p className="text-xs text-[#3e7b70]">
+                    Open, rename, and continue in a single click
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+            <div className="rounded-[22px] border border-[#D8F0C8] bg-[#FFFDF6] p-4 shadow-[0_8px_24px_rgba(2,129,116,0.04)]">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-[#F4FFE7] p-2.5 text-[#0AB68B]">
+                  <Sparkles className="size-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#025c52]">
+                    AI Assistance
+                  </p>
+                  <p className="text-xs text-[#3e7b70]">
+                    Enhance imported and manually built resumes
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -518,36 +564,55 @@ const Dashboard = () => {
               <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[#e5d7c5] text-[#7b6854]">
                 <FilePenLineIcon className="size-7" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-[#4c3f31]">No resumes yet</h3>
+              <h3 className="mt-5 text-xl font-semibold text-[#4c3f31]">
+                No resumes yet
+              </h3>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#75614c]">
-                Create a fresh resume or upload an existing PDF to see your drafts appear here.
+                Create a fresh resume or upload an existing PDF to see your
+                drafts appear here.
               </p>
             </div>
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {allResumes.map((resume, index) => {
+              {safeResumes.map((resume, index) => {
+                if (!resume?._id) return null;
                 const colorClass = colorClasses[index % colorClasses.length];
                 return (
-                  <button
-                    key={resume._id}
-                    onClick={() => navigate(`/app/builder/${resume._id}`)}
-                    className="group relative overflow-hidden rounded-[28px] border border-[#ddcfbc] bg-[#fffaf3] text-left transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(93,74,55,0.12)]"
+                  <div
+                    key={resume?._id}
+                    onClick={() => {
+                      if (!resume?._id) {
+                        console.error("Invalid resume:", resume);
+                        return;
+                      }
+                      navigate(`/builder/${resume._id}`);
+                    }}
+                    className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-[#ddcfbc] bg-[#fffaf3] text-left transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(93,74,55,0.12)]"
                   >
-                    <div className={`h-34 bg-gradient-to-br ${colorClass} p-5 text-white`}>
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute right-4 top-4 z-10 flex gap-2 opacity-0 transition group-hover:opacity-100"
-                      >
+                    <div
+                      className={`h-34 bg-gradient-to-br ${colorClass} p-5 text-white`}
+                    >
+                      {/* ACTION BUTTONS */}
+                      <div className="absolute right-4 top-4 z-10 flex gap-2 opacity-0 transition group-hover:opacity-100">
+                        {/* DELETE */}
                         <button
-                          onClick={() => deleteResume(resume._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!resume?._id) return;
+                            deleteResume(resume._id);
+                          }}
                           className="rounded-full bg-white/15 p-2 text-white backdrop-blur transition hover:bg-white/25"
                         >
                           <TrashIcon className="size-4" />
                         </button>
+
+                        {/* EDIT */}
                         <button
-                          onClick={() => {
-                            setEditResumeId(resume._id);
-                            setTitle(resume.title);
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!resume?._id) return;
+                            setEditResumeId(resume?._id);
+                            setTitle(resume?.title || "");
                           }}
                           className="rounded-full bg-white/15 p-2 text-white backdrop-blur transition hover:bg-white/25"
                         >
@@ -558,13 +623,14 @@ const Dashboard = () => {
                       <div className="inline-flex rounded-full bg-white/15 p-3 backdrop-blur">
                         <FilePenLineIcon className="size-5" />
                       </div>
+
                       <div className="mt-10 flex items-start justify-between gap-4">
                         <div>
                           <p className="max-w-[14rem] text-lg font-semibold leading-6">
                             {resume.title}
                           </p>
                           <p className="mt-2 text-xs uppercase tracking-[0.25em] text-white/75">
-                            {resume.public ? "Public" : "Private"}
+                            {resume?.public ? "Public" : "Private"}
                           </p>
                         </div>
                       </div>
@@ -574,21 +640,25 @@ const Dashboard = () => {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-[#7b6854]">Updated</span>
                         <span className="font-medium text-[#4c3f31]">
-                          {new Date(resume.updatedAt).toLocaleDateString()}
+                          {resume?.updatedAt
+                            ? new Date(resume.updatedAt).toLocaleDateString()
+                            : "N/A"}{" "}
                         </span>
                       </div>
+
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-[#7b6854]">Template</span>
                         <span className="font-medium capitalize text-[#4c3f31]">
                           {(resume.template || "classic").replace("-", " ")}
                         </span>
                       </div>
+
                       <div className="flex items-center justify-between rounded-2xl bg-[#f1e7d9] px-4 py-3 text-sm text-[#6e5a46]">
                         <span>Open builder</span>
                         <ArrowRight className="size-4 transition group-hover:translate-x-1" />
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -605,7 +675,9 @@ const Dashboard = () => {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-md rounded-[28px] border border-[#ddcfbc] bg-[#fbf6ef] p-7 shadow-[0_24px_80px_rgba(93,74,55,0.22)]"
             >
-              <h2 className="font-display mb-2 text-4xl text-[#43372c]">Create a Resume</h2>
+              <h2 className="font-display mb-2 text-4xl text-[#43372c]">
+                Create a Resume
+              </h2>
               <p className="mb-5 text-sm text-[#75614c]">
                 Give your draft a clear title so you can find it quickly later.
               </p>
@@ -640,9 +712,12 @@ const Dashboard = () => {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-md rounded-[28px] border border-[#ddcfbc] bg-[#fbf6ef] p-7 shadow-[0_24px_80px_rgba(93,74,55,0.22)]"
             >
-              <h2 className="font-display mb-2 text-4xl text-[#43372c]">Upload a Resume</h2>
+              <h2 className="font-display mb-2 text-4xl text-[#43372c]">
+                Upload a Resume
+              </h2>
               <p className="mb-5 text-sm text-[#75614c]">
-                Import a PDF resume and optionally attach a profile image for templates that use it.
+                Import a PDF resume and optionally attach a profile image for
+                templates that use it.
               </p>
               <input
                 onChange={(e) => setTitle(e.target.value)}
@@ -659,9 +734,7 @@ const Dashboard = () => {
                   className="block text-sm text-[#5c4c3d]"
                 >
                   Select Resume file
-                  <div
-                    className="my-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-[#d5c6b1] p-4 py-10 text-[#9d8a72] transition-colors hover:border-[#7b8b74] hover:text-[#7b8b74]"
-                  >
+                  <div className="my-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-[#d5c6b1] p-4 py-10 text-[#9d8a72] transition-colors hover:border-[#7b8b74] hover:text-[#7b8b74]">
                     {resume ? (
                       <p className="text-[#7b8b74]">{resume.name}</p>
                     ) : (
@@ -677,7 +750,9 @@ const Dashboard = () => {
                   id="resume-input"
                   accept=".pdf"
                   hidden
-                  onChange={(e) => handleResumeFileChange(e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    handleResumeFileChange(e.target.files?.[0] || null)
+                  }
                 />
               </div>
               <div className="mt-4">
@@ -686,9 +761,7 @@ const Dashboard = () => {
                   className="block text-sm text-[#5c4c3d]"
                 >
                   Optional profile image
-                  <div
-                    className="my-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-[#d5c6b1] p-4 py-8 text-[#9d8a72] transition-colors hover:border-[#b56e58] hover:text-[#b56e58]"
-                  >
+                  <div className="my-4 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-[#d5c6b1] p-4 py-8 text-[#9d8a72] transition-colors hover:border-[#b56e58] hover:text-[#b56e58]">
                     {profileImage ? (
                       <p className="text-[#b56e58]">{profileImage.name}</p>
                     ) : (
@@ -717,7 +790,10 @@ const Dashboard = () => {
                   Remove image background
                 </label>
               )}
-              <button disabled={isLoading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#9a7a52] py-3 text-[#fbf6ef] transition-colors hover:bg-[#846746] disabled:opacity-70">
+              <button
+                disabled={isLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#9a7a52] py-3 text-[#fbf6ef] transition-colors hover:bg-[#846746] disabled:opacity-70"
+              >
                 {isLoading && (
                   <LoaderCircleIcon className="animate-spin size-4 text-white" />
                 )}
@@ -748,9 +824,12 @@ const Dashboard = () => {
               onClick={(e) => e.stopPropagation()}
               className="relative w-full max-w-md rounded-[28px] border border-[#ddcfbc] bg-[#fbf6ef] p-7 shadow-[0_24px_80px_rgba(93,74,55,0.22)]"
             >
-              <h2 className="font-display mb-2 text-4xl text-[#43372c]">Edit Resume Title</h2>
+              <h2 className="font-display mb-2 text-4xl text-[#43372c]">
+                Edit Resume Title
+              </h2>
               <p className="mb-5 text-sm text-[#75614c]">
-                Rename this draft without changing any of the saved content inside it.
+                Rename this draft without changing any of the saved content
+                inside it.
               </p>
               <input
                 onChange={(e) => setTitle(e.target.value)}

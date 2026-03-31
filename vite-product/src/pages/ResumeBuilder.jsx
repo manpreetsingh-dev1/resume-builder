@@ -61,24 +61,35 @@ const ResumeBuilder = () => {
   const activeSection = sections[activeSectionIndex];
 
   useEffect(() => {
-    const loadExistingResume = async () => {
-      try {
-        const { data } = await api.get(`/api/resumes/${resumeId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (data.resume) {
-          setResumeData(data.resume);
-          document.title = data.resume.title;
-        }
-      } catch (error) {
-        toast.error(error?.response?.data?.message || error.message);
-      }
-    };
+  const loadExistingResume = async () => {
 
-    if (token && resumeId) {
-      loadExistingResume();
+    // ✅ MAIN FIX — block invalid id
+    if (!resumeId || resumeId === "undefined") {
+      console.error("Invalid resumeId:", resumeId);
+      return;
     }
-  }, [resumeId, token]);
+
+    try {
+      const { data } = await api.get(`/resumes/${resumeId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data?.resume) {
+        setResumeData(data.resume);
+        document.title = data.resume.title;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.response?.data?.message || error.message);
+    }
+  };
+
+  // ✅ SAFE CALL CONDITION
+  if (token && resumeId && resumeId !== "undefined") {
+    loadExistingResume();
+  }
+}, [resumeId, token]);
+
 
   const changeResumeVisibility = async () => {
     try {
@@ -115,32 +126,106 @@ const ResumeBuilder = () => {
     window.print();
   };
 
+  // const saveResume = async () => {
+  //   try {
+  //     const updateResumeData = structuredClone(resumeData);
+
+  //     if (typeof resumeData.personal_info.image === "object") {
+  //       delete updateResumeData.personal_info.image;
+  //     }
+
+  //     const formData = new FormData();
+  //     formData.append("resumeId", resumeId);
+  //     formData.append("resumeData", JSON.stringify(updateResumeData));
+  //     if (removeBackground) {
+  //       formData.append("removeBackground", "yes");
+  //     }
+  //     if (typeof resumeData.personal_info.image === "object") {
+  //       formData.append("image", resumeData.personal_info.image);
+  //     }
+
+  //     const { data } = await api.put("/resumes/update", formData, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     setResumeData(data.resume);
+  //     toast.success(data.message);
+  //   } catch (error) {
+  //     toast.error(error?.response?.data?.message || error.message);
+  //   }
+  // };
+
+  // ResumeBuilder.jsx
+
   const saveResume = async () => {
     try {
+      // ✅ Use loaded resumeData._id first, fallback to URL resumeId
+      const selectedId = resumeData._id || resumeId;
+
+      // ✅ Validate resumeId exists and is not "undefined"
+      if (!selectedId || selectedId === "undefined") {
+        toast.error("Resume ID is missing. Please reload the page.");
+        console.error("Invalid resumeId:", selectedId);
+        return;
+      }
+
+      // ✅ Trim whitespace
+      const idToSend = selectedId.trim();
+      console.log("📝 Saving resume with ID:", idToSend);
+
+      // ✅ Create a copy of resume data for submission
       const updateResumeData = structuredClone(resumeData);
 
-      if (typeof resumeData.personal_info.image === "object") {
+      // Remove local image File object if it exists (keep URLs)
+      if (typeof resumeData.personal_info?.image === "object") {
         delete updateResumeData.personal_info.image;
       }
 
+      // ✅ Build FormData without manually setting Content-Type
+      // The browser will automatically set Content-Type: multipart/form-data with boundary
       const formData = new FormData();
-      formData.append("resumeId", resumeId);
+      formData.append("resumeId", idToSend);
       formData.append("resumeData", JSON.stringify(updateResumeData));
+
+      // ✅ Append optional fields
       if (removeBackground) {
         formData.append("removeBackground", "yes");
       }
-      if (typeof resumeData.personal_info.image === "object") {
+
+      // ✅ Append image file if selected (only if it's a File object)
+      if (resumeData.personal_info?.image instanceof File) {
         formData.append("image", resumeData.personal_info.image);
+        console.log("📸 Image file appended for upload");
       }
 
-      const { data } = await api.put("/api/resumes/update", formData, {
-        headers: { Authorization: `Bearer ${token}` },
+      // ✅ Log FormData contents for debugging (FormData doesn't have direct iteration, use entries())
+      console.log("📦 FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        if (key === "image") {
+          console.log(`  ${key}: File(${value.name})`);
+        } else if (key === "resumeData") {
+          console.log(`  ${key}: [resume JSON data]`);
+        } else {
+          console.log(`  ${key}: ${value}`);
+        }
+      }
+
+      // ✅ Send to backend
+      const { data } = await api.put("/resumes/update", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // DO NOT set Content-Type header - let browser handle it with boundary
+        },
       });
 
+      // ✅ Update local state with response
       setResumeData(data.resume);
-      toast.success(data.message);
+      toast.success(data.message || "Resume saved successfully");
+      console.log("✅ Resume saved successfully");
     } catch (error) {
-      toast.error(error?.response?.data?.message || error.message);
+      console.error("❌ saveResume error:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to save resume";
+      toast.error(errorMessage);
     }
   };
 

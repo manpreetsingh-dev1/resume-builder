@@ -1,15 +1,17 @@
 import axios from "axios";
 
-const isDev = import.meta.env.DEV;
-const configuredBaseURL = import.meta.env.VITE_BASE_URL?.trim();
-const baseURL = isDev ? "/api" : configuredBaseURL;
-
-if (!baseURL) {
-  throw new Error("VITE_BASE_URL is required for production builds.");
-}
-
 const api = axios.create({
-  baseURL,
+  baseURL: import.meta.env.VITE_API_URL || "/api",
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
 });
 
 export default api;

@@ -1,21 +1,26 @@
 import imagekit from "../configs/imageKit.js";
 import Resume from "../models/Resume.js";
-import fs from 'fs'
+import fs from "fs";
+import mongoose from "mongoose";
 
+/**
+ * Normalize resume data for API responses
+ * Converts Mongoose documents to plain objects and ensures data consistency
+ */
 const normalizeResume = (resume) => {
-    if (!resume) {
-        return resume;
-    }
+  if (!resume) {
+    return resume;
+  }
 
-    const normalizedResume =
-        typeof resume.toObject === "function" ? resume.toObject() : { ...resume };
+  const normalizedResume =
+    typeof resume.toObject === "function" ? resume.toObject() : { ...resume };
 
-    normalizedResume.professional_summary =
-        typeof normalizedResume.professional_summary === "string"
-            ? normalizedResume.professional_summary
-            : "";
+  normalizedResume.professional_summary =
+    typeof normalizedResume.professional_summary === "string"
+      ? normalizedResume.professional_summary
+      : "";
 
-    return normalizedResume;
+  return normalizedResume;
 };
 
 // controller for creating a new resume
@@ -94,62 +99,114 @@ export const getPublicResumeById = async (req, res) => {
     }
 };
 
-// controller for updating a resume
-// PUT: /api/resumes/update
+/**
+ * Update an existing resume with new data and/or image upload
+ * PUT: /api/resumes/update
+ * 
+ * Request Body (FormData):
+ *   - resumeId: string (MongoDB ObjectId)
+ *   - resumeData: JSON string containing resume fields
+ *   - image: optional File object for profile picture
+ *   - removeBackground: optional "yes" string flag
+ */
 export const updateResume = async (req, res) => {
-    try {
-        const userId = req.userId;
-        const { resumeId, resumeData, removeBackground } = req.body;
-        const image = req.file;
+  let tempFilePath = null;
 
-        let resumeDataCopy; 
-        if (typeof resumeData==='string') {
-            resumeDataCopy=await JSON.parse(resumeData)           
-        }else{
-            resumeDataCopy=structuredClone (resumeData)           
-         
-        }
+  try {
+    const userId = req.userId; // from auth middleware
+    const { resumeId, resumeData, removeBackground } = req.body;
+    const image = req.file;
 
-        if (image) {
-            if (!imagekit) {
-                return res.status(500).json({ message: "Image upload is not configured." });
-            }
-
-            const imageBufferData = fs.createReadStream(image.path)
-            const imageTransformation = [
-                "w-300",
-                "h-300",
-                "c-maintain_ratio",
-                "fo-face",
-                "z-0.20",
-                removeBackground ? "e-bgremove" : null,
-            ]
-                .filter(Boolean)
-                .join(",");
-
-            const response = await imagekit.files.upload({
-                file: imageBufferData,
-                fileName: 'resume.png',
-                folder: 'user-resumes',
-                transformation: {
-                    pre: imageTransformation
-                }
-            });
-            resumeDataCopy.personal_info.image = response.url
-        }
-        const resume = await Resume.findOneAndUpdate(
-            { userId, _id: resumeId },
-            resumeDataCopy,
-            { new: true, runValidators: true }
-        );
-
-        if (!resume) {
-            return res.status(404).json({ message: "Resume not found" });
-        }
-
-        return res.status(200).json({ message: "Saved successfully", resume: normalizeResume(resume) });
-    } catch (error) {
-        console.error("updateResume error:", error);
-        return res.status(500).json({ message: "Failed to save resume." });
+    // ✅ Validate resumeId format
+    if (!resumeId || typeof resumeId !== "string") {
+      return res.status(400).json({ message: "Resume ID is required and must be a string" });
     }
+
+    const trimmedResumeId = resumeId.trim();
+
+    if (!mongoose.Types.ObjectId.isValid(trimmedResumeId)) {
+      return res.status(400).json({ message: "Invalid Resume ID format" });
+    }
+
+    // ✅ Validate resumeData exists
+    if (!resumeData) {
+      return res.status(400).json({ message: "Resume data is required" });
+    }
+
+    // ✅ Parse resume data
+    let resumeDataCopy;
+    try {
+      resumeDataCopy =
+        typeof resumeData === "string" ? JSON.parse(resumeData) : structuredClone(resumeData);
+    } catch (parseError) {
+      console.error("Failed to parse resumeData:", parseError);
+      return res.status(400).json({ message: "Invalid resume data format" });
+    }
+
+    // ✅ Handle image upload to ImageKit
+    if (image) {
+      tempFilePath = image.path;
+
+      try {
+        const imageStream = fs.createReadStream(tempFilePath);
+
+        const uploadResponse = await imagekit.files.upload({
+          file: imageStream,
+          fileName: `resume_${trimmedResumeId}_${Date.now()}.png`,
+          folder: "user-resumes",
+          tags: ["resume", "profile"],
+        });
+
+        // Save ImageKit URL to resume data
+        if (!resumeDataCopy.personal_info) {
+          resumeDataCopy.personal_info = {};
+        }
+        resumeDataCopy.personal_info.image = uploadResponse.url;
+
+        console.log("Image uploaded successfully:", uploadResponse.url);
+      } catch (uploadError) {
+        console.error("ImageKit upload error:", uploadError);
+        return res.status(500).json({ message: "Failed to upload image to ImageKit" });
+      }
+    }
+
+    // ✅ Update resume in database
+    const updatedResume = await Resume.findOneAndUpdate(
+      { userId, _id: trimmedResumeId },
+      { $set: resumeDataCopy },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedResume) {
+      return res.status(404).json({ message: "Resume not found or you don't have permission to edit it" });
+    }
+
+    return res.status(200).json({
+      message: "Resume saved successfully",
+      resume: normalizeResume(updatedResume),
+    });
+  } catch (error) {
+    console.error("updateResume error:", error);
+
+    // Handle specific MongoDB errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: "Invalid resume data provided" });
+    }
+    if (error.name === "CastError") {
+      return res.status(400).json({ message: "Invalid Resume ID format" });
+    }
+
+    return res.status(500).json({ message: "Failed to save resume. Please try again." });
+  } finally {
+    // ✅ Cleanup temporary file
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      fs.unlink(tempFilePath, (err) => {
+        if (err) {
+          console.error("Failed to delete temporary file:", tempFilePath, err);
+        } else {
+          console.log("Temporary file cleaned up:", tempFilePath);
+        }
+      });
+    }
+  }
 };

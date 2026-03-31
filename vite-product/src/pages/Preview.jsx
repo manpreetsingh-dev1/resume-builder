@@ -9,25 +9,37 @@ import api from "../configs/api";
 const Preview = () => {
   const { resumeId } = useParams();
 
+const validResumeId =
+  resumeId && resumeId !== "undefined" ? resumeId : null;
+
   const [isLoading, setIsLoading] = useState(true);
 
   const [resumeData, setResumeData] = useState(null);
 
   useEffect(() => {
-    const loadResume = async () => {
-      try {
-        const {data}=await api.get('/api/resumes/public/' + resumeId)
-        setResumeData(data.resume)
-      } catch {
-        setResumeData(null);
-      }
-      finally{
-        setIsLoading(false)
-      }
-    };
+  const loadResume = async () => {
 
-    loadResume();
-  }, [resumeId]);
+    // ✅ BLOCK INVALID ID (MAIN FIX)
+    if (!validResumeId) {
+      console.error("Invalid resumeId:", resumeId);
+      setResumeData(null);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data } = await api.get(`/resumes/public/${validResumeId}`);
+      setResumeData(data?.resume || null);
+    } catch (error) {
+      console.error(error);
+      setResumeData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  loadResume();
+}, [validResumeId]);
 
   return resumeData ? (
     <div className="min-h-screen bg-[#FFF7E3]">
