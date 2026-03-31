@@ -15,21 +15,21 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
-import PersonalInfoForm from "../components/PersonalInfoForm";
-import ResumePreview from "../components/ResumePreview";
-import TemplateSelector from "../components/TemplateSelector";
-import ColorPicker from "../components/ColorPicker";
-import ProfessionalSummaryForm from "../components/ProfessionalSummaryForm";
-import ExperienceForm from "../components/ExperienceForm";
-import EducationForm from "../components/EducationForm";
-import ProjectForm from "../components/ProjectForm";
-import SkillsForm from "../components/SkillsForm";
 import { useSelector } from "react-redux";
-import api from "../configs/api";
 import toast from "react-hot-toast";
+import ColorPicker from "../components/ColorPicker";
+import EducationForm from "../components/EducationForm";
+import ExperienceForm from "../components/ExperienceForm";
+import PersonalInfoForm from "../components/PersonalInfoForm";
+import ProfessionalSummaryForm from "../components/ProfessionalSummaryForm";
+import ProjectForm from "../components/ProjectForm";
+import ResumePreview from "../components/ResumePreview";
+import SkillsForm from "../components/SkillsForm";
+import TemplateSelector from "../components/TemplateSelector";
+import api from "../configs/api";
 
 const ResumeBuilder = () => {
-  const { resumeId } = useParams();
+  const { resumeId: routeResumeId } = useParams();
   const { token } = useSelector((state) => state.auth);
 
   const [resumeData, setResumeData] = useState({
@@ -37,7 +37,7 @@ const ResumeBuilder = () => {
     title: "",
     personal_info: { image: "" },
     professional_summary: "",
-    experience: "",
+    experience: [],
     education: [],
     project: [],
     skills: [],
@@ -45,7 +45,6 @@ const ResumeBuilder = () => {
     accent_color: "#028174",
     public: false,
   });
-
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [removeBackground, setRemoveBackground] = useState(false);
 
@@ -60,51 +59,66 @@ const ResumeBuilder = () => {
 
   const activeSection = sections[activeSectionIndex];
 
-  useEffect(() => {
-  const loadExistingResume = async () => {
+  const resolveResumeId = () => {
+    const stateId =
+      typeof resumeData?._id === "string" ? resumeData._id.trim() : "";
+    const urlId =
+      typeof routeResumeId === "string" ? routeResumeId.trim() : "";
 
-    // ✅ MAIN FIX — block invalid id
-    if (!resumeId || resumeId === "undefined") {
-      console.error("Invalid resumeId:", resumeId);
-      return;
-    }
-
-    try {
-      const { data } = await api.get(`/resumes/${resumeId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (data?.resume) {
-        setResumeData(data.resume);
-        document.title = data.resume.title;
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error(error?.response?.data?.message || error.message);
-    }
+    return stateId || urlId;
   };
 
-  // ✅ SAFE CALL CONDITION
-  if (token && resumeId && resumeId !== "undefined") {
-    loadExistingResume();
-  }
-}, [resumeId, token]);
+  useEffect(() => {
+    const trimmedRouteResumeId =
+      typeof routeResumeId === "string" ? routeResumeId.trim() : "";
 
+    const loadExistingResume = async () => {
+      if (!trimmedRouteResumeId || trimmedRouteResumeId === "undefined") {
+        console.error("Invalid resumeId from route:", routeResumeId);
+        return;
+      }
+
+      try {
+        const { data } = await api.get(`/resumes/${trimmedRouteResumeId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (data?.resume) {
+          setResumeData(data.resume);
+          document.title = data.resume.title || "Resume Builder";
+        }
+      } catch (error) {
+        console.error("Failed to load resume:", error);
+        toast.error(error?.response?.data?.message || error.message);
+      }
+    };
+
+    if (token && trimmedRouteResumeId && trimmedRouteResumeId !== "undefined") {
+      loadExistingResume();
+    }
+  }, [routeResumeId, token]);
 
   const changeResumeVisibility = async () => {
     try {
+      const resolvedResumeId = resolveResumeId();
+
+      if (!resolvedResumeId || resolvedResumeId === "undefined") {
+        toast.error("Resume ID is missing. Please reload the page.");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("resumeId", resumeId);
+      formData.append("resumeId", resolvedResumeId);
       formData.append(
         "resumeData",
-        JSON.stringify({ public: !resumeData.public }),
+        JSON.stringify({ public: !resumeData.public })
       );
 
-      const { data } = await api.put("/api/resumes/update", formData, {
+      const { data } = await api.put("/resumes/update", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setResumeData({ ...resumeData, public: !resumeData.public });
+      setResumeData((prev) => ({ ...prev, public: !prev.public }));
       toast.success(data.message);
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
@@ -112,8 +126,15 @@ const ResumeBuilder = () => {
   };
 
   const handleShare = () => {
+    const resolvedResumeId = resolveResumeId();
+
+    if (!resolvedResumeId) {
+      toast.error("Resume ID is missing. Please save the resume first.");
+      return;
+    }
+
     const frontendUrl = window.location.href.split("/app/")[0];
-    const resumeUrl = `${frontendUrl}/view/${resumeId}`;
+    const resumeUrl = `${frontendUrl}/view/${resolvedResumeId}`;
 
     if (navigator.share) {
       navigator.share({ url: resumeUrl, text: "My Resume" });
@@ -126,106 +147,63 @@ const ResumeBuilder = () => {
     window.print();
   };
 
-  // const saveResume = async () => {
-  //   try {
-  //     const updateResumeData = structuredClone(resumeData);
-
-  //     if (typeof resumeData.personal_info.image === "object") {
-  //       delete updateResumeData.personal_info.image;
-  //     }
-
-  //     const formData = new FormData();
-  //     formData.append("resumeId", resumeId);
-  //     formData.append("resumeData", JSON.stringify(updateResumeData));
-  //     if (removeBackground) {
-  //       formData.append("removeBackground", "yes");
-  //     }
-  //     if (typeof resumeData.personal_info.image === "object") {
-  //       formData.append("image", resumeData.personal_info.image);
-  //     }
-
-  //     const { data } = await api.put("/resumes/update", formData, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-
-  //     setResumeData(data.resume);
-  //     toast.success(data.message);
-  //   } catch (error) {
-  //     toast.error(error?.response?.data?.message || error.message);
-  //   }
-  // };
-
-  // ResumeBuilder.jsx
-
   const saveResume = async () => {
     try {
-      // ✅ Use loaded resumeData._id first, fallback to URL resumeId
-      const selectedId = resumeData._id || resumeId;
+      const resolvedResumeId = resolveResumeId();
 
-      // ✅ Validate resumeId exists and is not "undefined"
-      if (!selectedId || selectedId === "undefined") {
+      if (!resolvedResumeId || resolvedResumeId === "undefined") {
+        console.error("Attempted to save with invalid resumeId:", {
+          stateId: resumeData?._id,
+          routeResumeId,
+        });
         toast.error("Resume ID is missing. Please reload the page.");
-        console.error("Invalid resumeId:", selectedId);
         return;
       }
 
-      // ✅ Trim whitespace
-      const idToSend = selectedId.trim();
-      console.log("📝 Saving resume with ID:", idToSend);
+      const idToSend = resolvedResumeId.trim();
+      console.log("Saving resume with resumeId:", idToSend);
 
-      // ✅ Create a copy of resume data for submission
       const updateResumeData = structuredClone(resumeData);
+      updateResumeData._id = idToSend;
 
-      // Remove local image File object if it exists (keep URLs)
-      if (typeof resumeData.personal_info?.image === "object") {
+      if (resumeData.personal_info?.image instanceof File) {
         delete updateResumeData.personal_info.image;
       }
 
-      // ✅ Build FormData without manually setting Content-Type
-      // The browser will automatically set Content-Type: multipart/form-data with boundary
       const formData = new FormData();
       formData.append("resumeId", idToSend);
       formData.append("resumeData", JSON.stringify(updateResumeData));
+      formData.append("removeBackground", removeBackground ? "yes" : "no");
 
-      // ✅ Append optional fields
-      if (removeBackground) {
-        formData.append("removeBackground", "yes");
-      }
-
-      // ✅ Append image file if selected (only if it's a File object)
       if (resumeData.personal_info?.image instanceof File) {
         formData.append("image", resumeData.personal_info.image);
-        console.log("📸 Image file appended for upload");
       }
 
-      // ✅ Log FormData contents for debugging (FormData doesn't have direct iteration, use entries())
-      console.log("📦 FormData contents:");
-      for (let [key, value] of formData.entries()) {
+      for (const [key, value] of formData.entries()) {
         if (key === "image") {
-          console.log(`  ${key}: File(${value.name})`);
+          console.log(`${key}: File(${value.name})`);
         } else if (key === "resumeData") {
-          console.log(`  ${key}: [resume JSON data]`);
+          console.log(`${key}: [resume JSON payload]`);
         } else {
-          console.log(`  ${key}: ${value}`);
+          console.log(`${key}: ${value}`);
         }
       }
 
-      // ✅ Send to backend
       const { data } = await api.put("/resumes/update", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          // DO NOT set Content-Type header - let browser handle it with boundary
         },
       });
 
-      // ✅ Update local state with response
       setResumeData(data.resume);
       toast.success(data.message || "Resume saved successfully");
-      console.log("✅ Resume saved successfully");
     } catch (error) {
-      console.error("❌ saveResume error:", error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Failed to save resume";
-      toast.error(errorMessage);
+      console.error("saveResume error:", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to save resume"
+      );
     }
   };
 
@@ -274,7 +252,7 @@ const ResumeBuilder = () => {
                   <button
                     onClick={() =>
                       setActiveSectionIndex((prevIndex) =>
-                        Math.max(prevIndex - 1, 0),
+                        Math.max(prevIndex - 1, 0)
                       )
                     }
                     className="flex items-center gap-1 rounded-full p-3 text-sm font-medium text-[#75614c] transition-all hover:bg-[#f3e8d8]"
@@ -288,7 +266,7 @@ const ResumeBuilder = () => {
                 <button
                   onClick={() =>
                     setActiveSectionIndex((prevIndex) =>
-                      Math.min(prevIndex + 1, sections.length - 1),
+                      Math.min(prevIndex + 1, sections.length - 1)
                     )
                   }
                   className={`flex items-center gap-1 rounded-full p-3 text-sm font-medium text-[#75614c] transition-all hover:bg-[#f3e8d8] ${
@@ -376,7 +354,7 @@ const ResumeBuilder = () => {
 
             <button
               onClick={() => {
-                toast.promise(saveResume, { loading: "saving...." });
+                toast.promise(saveResume(), { loading: "saving...." });
               }}
               className="mt-6 mb-2 ml-6 rounded-full border border-[#028174] bg-[#028174] px-5 py-2 text-sm text-[#FFFBF1] transition-all hover:bg-[#0AB68B]"
             >

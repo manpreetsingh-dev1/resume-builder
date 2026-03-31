@@ -1,212 +1,243 @@
+import fs from "fs";
+import { promises as fsPromises } from "fs";
+import mongoose from "mongoose";
 import imagekit from "../configs/imageKit.js";
 import Resume from "../models/Resume.js";
-import fs from "fs";
-import mongoose from "mongoose";
+import normalizeResume from "../utils/normalizeResume.js";
 
-/**
- * Normalize resume data for API responses
- * Converts Mongoose documents to plain objects and ensures data consistency
- */
-const normalizeResume = (resume) => {
-  if (!resume) {
-    return resume;
+const parseResumePayload = (resumeData) => {
+  if (!resumeData) {
+    throw new Error("Resume data is required.");
   }
 
-  const normalizedResume =
-    typeof resume.toObject === "function" ? resume.toObject() : { ...resume };
+  if (typeof resumeData === "string") {
+    return JSON.parse(resumeData);
+  }
 
-  normalizedResume.professional_summary =
-    typeof normalizedResume.professional_summary === "string"
-      ? normalizedResume.professional_summary
-      : "";
+  if (typeof resumeData === "object") {
+    return structuredClone(resumeData);
+  }
 
-  return normalizedResume;
+  throw new Error("Resume data must be a JSON object or JSON string.");
+};
+
+const uploadResumeImage = async ({ image, resumeId, removeBackground }) => {
+  if (!image) {
+    return "";
+  }
+
+  if (!imagekit) {
+    throw new Error("Image upload is not configured on the server.");
+  }
+
+  const transformation = [
+    "w-300",
+    "h-300",
+    "c-maintain_ratio",
+    "fo-face",
+    "z-0.75",
+    removeBackground ? "e-bgremove" : null,
+  ]
+    .filter(Boolean)
+    .join(",");
+
+  const uploadResponse = await imagekit.files.upload({
+    file: fs.createReadStream(image.path),
+    fileName: `resume_${resumeId}_${Date.now()}${image.originalname ? `_${image.originalname}` : ".png"}`,
+    folder: "user-resumes",
+    useUniqueFileName: true,
+    transformation: {
+      pre: transformation,
+    },
+  });
+
+  return uploadResponse?.url || "";
 };
 
 // controller for creating a new resume
 // POST :/api/resumes/create
 export const createResume = async (req, res) => {
-    try {
-        const userId = req.userId;
-        const { title } = req.body;
+  try {
+    const userId = req.userId;
+    const { title } = req.body;
 
-        // create new resume
-        const newResume = await Resume.create({ userId, title });
+    const newResume = await Resume.create({ userId, title });
 
-        // return success message
-        return res
-            .status(201)
-            .json({ message: "Resume created successfully", resume: normalizeResume(newResume) });
-    } catch (error) {
-        console.error("createResume error:", error);
-        return res.status(500).json({ message: "Failed to create resume." });
-    }
+    return res.status(201).json({
+      message: "Resume created successfully",
+      resume: normalizeResume(newResume),
+    });
+  } catch (error) {
+    console.error("createResume error:", error);
+    return res.status(500).json({ message: "Failed to create resume." });
+  }
 };
 
 // controller for delete resume
 // DELETE :/api/resumes/delete
 export const deleteResume = async (req, res) => {
-    try {
-        const userId = req.userId;
-        const { resumeId } = req.params;
+  try {
+    const userId = req.userId;
+    const { resumeId } = req.params;
 
-        const deletedResume = await Resume.findOneAndDelete({ userId, _id: resumeId });
+    const deletedResume = await Resume.findOneAndDelete({ userId, _id: resumeId });
 
-        if (!deletedResume) {
-            return res.status(404).json({ message: "Resume not found" });
-        }
-
-        return res.status(201).json({ message: "Resume delete successfully" });
-    } catch (error) {
-        console.error("deleteResume error:", error);
-        return res.status(500).json({ message: "Failed to delete resume." });
+    if (!deletedResume) {
+      return res.status(404).json({ message: "Resume not found" });
     }
+
+    return res.status(201).json({ message: "Resume delete successfully" });
+  } catch (error) {
+    console.error("deleteResume error:", error);
+    return res.status(500).json({ message: "Failed to delete resume." });
+  }
 };
 
 // controller for get user resume by id
-// POST :/api/resumes/create
+// GET :/api/resumes/:resumeId
 export const getResumeById = async (req, res) => {
-    try {
-        const userId = req.userId;
-        const { resumeId } = req.params;
+  try {
+    const userId = req.userId;
+    const { resumeId } = req.params;
 
-        const resume = await Resume.findOne({ userId, _id: resumeId });
+    const resume = await Resume.findOne({ userId, _id: resumeId });
 
-        if (!resume) {
-            return res.status(404).json({ message: "Resume not found" });
-        }
-
-        return res.status(200).json({ resume: normalizeResume(resume) });
-    } catch (error) {
-        return res.status(400).json({ message: error.message });
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
     }
+
+    return res.status(200).json({ resume: normalizeResume(resume) });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 };
 
 // get resume by id public
-// GET: /api/resumes/public
+// GET: /api/resumes/public/:resumeId
 export const getPublicResumeById = async (req, res) => {
-    try {
-        const { resumeId } = req.params;
-        const resume = await Resume.findOne({ public: true, _id: resumeId });
+  try {
+    const { resumeId } = req.params;
+    const resume = await Resume.findOne({ public: true, _id: resumeId });
 
-        if (!resume) {
-            return res.status(404).json({ message: "Resume not found" });
-        }
-
-        return res.status(200).json({ resume: normalizeResume(resume) });
-    } catch (error) {
-        return res.status(400).json({ message: error.message });
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
     }
+
+    return res.status(200).json({ resume: normalizeResume(resume) });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
 };
 
-/**
- * Update an existing resume with new data and/or image upload
- * PUT: /api/resumes/update
- * 
- * Request Body (FormData):
- *   - resumeId: string (MongoDB ObjectId)
- *   - resumeData: JSON string containing resume fields
- *   - image: optional File object for profile picture
- *   - removeBackground: optional "yes" string flag
- */
+// controller for updating a resume
+// PUT :/api/resumes/update
 export const updateResume = async (req, res) => {
-  let tempFilePath = null;
+  const tempFilePath = req.file?.path || "";
 
   try {
-    const userId = req.userId; // from auth middleware
-    const { resumeId, resumeData, removeBackground } = req.body;
-    const image = req.file;
+    const userId = req.userId;
+    const rawResumeId =
+      typeof req.body?.resumeId === "string" ? req.body.resumeId.trim() : "";
 
-    // ✅ Validate resumeId format
-    if (!resumeId || typeof resumeId !== "string") {
-      return res.status(400).json({ message: "Resume ID is required and must be a string" });
+    if (!rawResumeId) {
+      return res.status(400).json({ message: "resumeId is required." });
     }
 
-    const trimmedResumeId = resumeId.trim();
-
-    if (!mongoose.Types.ObjectId.isValid(trimmedResumeId)) {
-      return res.status(400).json({ message: "Invalid Resume ID format" });
+    if (!mongoose.Types.ObjectId.isValid(rawResumeId)) {
+      return res.status(400).json({ message: "Invalid resumeId." });
     }
 
-    // ✅ Validate resumeData exists
-    if (!resumeData) {
-      return res.status(400).json({ message: "Resume data is required" });
-    }
+    let parsedResumeData;
 
-    // ✅ Parse resume data
-    let resumeDataCopy;
     try {
-      resumeDataCopy =
-        typeof resumeData === "string" ? JSON.parse(resumeData) : structuredClone(resumeData);
+      parsedResumeData = parseResumePayload(req.body?.resumeData);
     } catch (parseError) {
-      console.error("Failed to parse resumeData:", parseError);
-      return res.status(400).json({ message: "Invalid resume data format" });
+      return res.status(400).json({ message: parseError.message });
     }
 
-    // ✅ Handle image upload to ImageKit
-    if (image) {
-      tempFilePath = image.path;
+    const removeBackground =
+      req.body?.removeBackground === "yes" ||
+      req.body?.removeBackground === "true" ||
+      req.body?.removeBackground === true;
 
-      try {
-        const imageStream = fs.createReadStream(tempFilePath);
+    const existingResume = await Resume.findOne({
+      _id: rawResumeId,
+      userId,
+    });
 
-        const uploadResponse = await imagekit.files.upload({
-          file: imageStream,
-          fileName: `resume_${trimmedResumeId}_${Date.now()}.png`,
-          folder: "user-resumes",
-          tags: ["resume", "profile"],
-        });
+    if (!existingResume) {
+      return res.status(404).json({ message: "Resume not found." });
+    }
 
-        // Save ImageKit URL to resume data
-        if (!resumeDataCopy.personal_info) {
-          resumeDataCopy.personal_info = {};
-        }
-        resumeDataCopy.personal_info.image = uploadResponse.url;
+    const nextResumeData =
+      parsedResumeData && typeof parsedResumeData === "object"
+        ? parsedResumeData
+        : {};
 
-        console.log("Image uploaded successfully:", uploadResponse.url);
-      } catch (uploadError) {
-        console.error("ImageKit upload error:", uploadError);
-        return res.status(500).json({ message: "Failed to upload image to ImageKit" });
+    delete nextResumeData._id;
+    delete nextResumeData.userId;
+    delete nextResumeData.createdAt;
+    delete nextResumeData.updatedAt;
+
+    nextResumeData.personal_info =
+      nextResumeData.personal_info &&
+      typeof nextResumeData.personal_info === "object"
+        ? nextResumeData.personal_info
+        : {};
+
+    if (req.file) {
+      const uploadedImageUrl = await uploadResumeImage({
+        image: req.file,
+        resumeId: rawResumeId,
+        removeBackground,
+      });
+
+      if (!uploadedImageUrl) {
+        return res.status(500).json({ message: "Image upload failed." });
       }
+
+      nextResumeData.personal_info.image = uploadedImageUrl;
     }
 
-    // ✅ Update resume in database
     const updatedResume = await Resume.findOneAndUpdate(
-      { userId, _id: trimmedResumeId },
-      { $set: resumeDataCopy },
+      { _id: rawResumeId, userId },
+      { $set: nextResumeData },
       { new: true, runValidators: true }
     );
 
     if (!updatedResume) {
-      return res.status(404).json({ message: "Resume not found or you don't have permission to edit it" });
+      return res.status(404).json({ message: "Resume not found." });
     }
 
     return res.status(200).json({
-      message: "Resume saved successfully",
+      message: "Resume saved successfully.",
       resume: normalizeResume(updatedResume),
     });
   } catch (error) {
     console.error("updateResume error:", error);
 
-    // Handle specific MongoDB errors
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ message: "Invalid resume data provided" });
-    }
-    if (error.name === "CastError") {
-      return res.status(400).json({ message: "Invalid Resume ID format" });
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({ message: "Invalid resume data provided." });
     }
 
-    return res.status(500).json({ message: "Failed to save resume. Please try again." });
+    if (error?.name === "SyntaxError") {
+      return res.status(400).json({ message: "resumeData must be valid JSON." });
+    }
+
+    if (error?.message === "Image upload is not configured on the server.") {
+      return res.status(500).json({ message: error.message });
+    }
+
+    return res.status(500).json({ message: "Failed to update resume." });
   } finally {
-    // ✅ Cleanup temporary file
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
-      fs.unlink(tempFilePath, (err) => {
-        if (err) {
-          console.error("Failed to delete temporary file:", tempFilePath, err);
-        } else {
-          console.log("Temporary file cleaned up:", tempFilePath);
+    if (tempFilePath) {
+      try {
+        await fsPromises.unlink(tempFilePath);
+      } catch (cleanupError) {
+        if (cleanupError?.code !== "ENOENT") {
+          console.error("Failed to clean up uploaded file:", cleanupError);
         }
-      });
+      }
     }
   }
 };
