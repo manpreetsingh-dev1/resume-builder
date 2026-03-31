@@ -22,13 +22,12 @@ await connectDB();
 app.use(express.json());
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn(`Blocked CORS request from: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
     },
+    credentials: true, // optional, if you use cookies or auth
   })
 );
 
@@ -47,14 +46,9 @@ app.use((error, req, res, next) => {
     return res.status(403).json({ message: "CORS blocked this request." });
   }
 
-  return next(error);
-});
-
-app.use((error, req, res, next) => {
   console.error(error);
   return res.status(500).json({ message: "Internal server error" });
 });
-
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
