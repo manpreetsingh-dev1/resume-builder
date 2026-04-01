@@ -20,7 +20,6 @@ await connectDB();
 
 // Middleware
 app.use(express.json());
-import cors from "cors";
 
 app.use(
   cors({
