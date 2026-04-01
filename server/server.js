@@ -20,14 +20,32 @@ await connectDB();
 
 // Middleware
 app.use(express.json());
+import cors from "cors";
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      console.warn(`Blocked CORS request from: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
+      if (!origin) return callback(null, true);
+
+      // allow localhost
+      if (origin === "http://localhost:5173") {
+        return callback(null, true);
+      }
+
+      // allow ALL vercel domains
+      if (origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+
+      // allow your main domain (optional)
+      if (origin === process.env.FRONTEND_URL) {
+        return callback(null, true);
+      }
+
+      console.log("Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
-    credentials: true, // optional, if you use cookies or auth
+    credentials: true,
   })
 );
 
