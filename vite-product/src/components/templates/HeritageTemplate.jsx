@@ -119,6 +119,17 @@ const HeritageTemplate = ({ data, accentColor }) => {
             </div>
           </section>
         )}
+
+        {data.declaration && (
+          <section className="mt-8 border-t border-[var(--vintage-border)] pt-8">
+            <h2 className="mb-4 text-xs uppercase tracking-[0.34em]" style={{ color: themeAccent }}>
+              Declaration
+            </h2>
+            <p className="text-sm leading-7 text-[var(--vintage-muted)]">
+              {data.declaration}
+            </p>
+          </section>
+        )}
       </main>
     </div>
   );

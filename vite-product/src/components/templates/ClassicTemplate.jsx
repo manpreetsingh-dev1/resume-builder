@@ -106,7 +106,7 @@ const ClassicTemplate = ({ data, accentColor }) => {
       )}
 
       {data.skills && data.skills.length > 0 && (
-        <section className="mb-2">
+        <section className="mb-6">
           <h2 className="mb-4 text-xl font-semibold" style={{ color: themeAccent }}>
             CORE SKILLS
           </h2>
@@ -117,6 +117,17 @@ const ClassicTemplate = ({ data, accentColor }) => {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {data.declaration && (
+        <section className="border-t pt-6" style={{ borderColor: themeAccent }}>
+          <h2 className="mb-3 text-xl font-semibold" style={{ color: themeAccent }}>
+            DECLARATION
+          </h2>
+          <p className="text-sm leading-relaxed text-[var(--vintage-muted)]">
+            {data.declaration}
+          </p>
         </section>
       )}
     </div>

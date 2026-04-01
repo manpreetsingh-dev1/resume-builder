@@ -97,11 +97,32 @@ const MinimalTemplate = ({ data, accentColor }) => {
       )}
 
       {data.skills && data.skills.length > 0 && (
-        <section>
+        <section className="mb-6">
           <h2 className="mb-6 text-sm font-medium uppercase tracking-[0.32em]" style={{ color: themeAccent }}>
             Skills
           </h2>
-          <div className="text-[var(--vintage-muted)]">{data.skills.join(" • ")}</div>
+          <div className="flex flex-wrap gap-2">
+            {data.skills.map((skill, index) => (
+              <span
+                key={index}
+                className="rounded-full px-3 py-1 text-sm"
+                style={{ backgroundColor: `${themeAccent}22`, color: themeAccent }}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {data.declaration && (
+        <section className="border-t border-[var(--vintage-border)] pt-8">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-[0.32em]" style={{ color: themeAccent }}>
+            Declaration
+          </h2>
+          <p className="text-sm leading-7 text-[var(--vintage-muted)]">
+            {data.declaration}
+          </p>
         </section>
       )}
     </div>

@@ -128,6 +128,15 @@ const ModernTemplate = ({ data, accentColor }) => {
             </section>
           )}
         </div>
+
+        {data.declaration && (
+          <section className="mt-8 border-t border-[var(--vintage-border)] pt-8">
+            <h2 className="mb-4 border-b border-[var(--vintage-border)] pb-2 text-2xl font-light">Declaration</h2>
+            <p className="text-sm leading-7 text-[var(--vintage-muted)]">
+              {data.declaration}
+            </p>
+          </section>
+        )}
       </div>
     </div>
   );

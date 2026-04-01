@@ -121,6 +121,17 @@ const EditorialTemplate = ({ data, accentColor }) => {
               </div>
             </section>
           )}
+
+          {data.declaration && (
+            <section className="border-t border-[var(--vintage-border)] pt-6">
+              <h2 className="mb-4 text-xs uppercase tracking-[0.34em]" style={{ color: themeAccent }}>
+                Declaration
+              </h2>
+              <p className="text-sm leading-7 text-[var(--vintage-muted)]">
+                {data.declaration}
+              </p>
+            </section>
+          )}
         </div>
       </div>
     </div>

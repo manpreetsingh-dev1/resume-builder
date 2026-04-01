@@ -74,13 +74,30 @@ const MinimalImageTemplate = ({ data, accentColor }) => {
           )}
 
           {data.skills && data.skills.length > 0 && (
-            <section>
+            <section className="mb-8">
               <h2 className="mb-3 text-sm font-semibold tracking-[0.28em] text-[var(--vintage-walnut)]">
                 SKILLS
               </h2>
-              <ul className="space-y-1 text-sm">
-                {data.skills.map((skill, index) => <li key={index}>{skill}</li>)}
-              </ul>
+              <div className="flex flex-wrap gap-2">
+                {data.skills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="rounded-full px-2 py-1 text-xs"
+                    style={{ backgroundColor: `${themeAccent}22`, color: themeAccent }}
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {data.declaration && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold tracking-[0.28em] text-[var(--vintage-walnut)]">
+                DECLARATION
+              </h2>
+              <p className="text-xs leading-6 text-[var(--vintage-muted)]">{data.declaration}</p>
             </section>
           )}
         </aside>

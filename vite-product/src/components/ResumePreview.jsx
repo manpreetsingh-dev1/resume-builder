@@ -60,6 +60,10 @@ const ResumePreview = ({
     education: Array.isArray(data?.education) ? data.education : [],
     project: Array.isArray(data?.project) ? data.project : [],
     skills: Array.isArray(data?.skills) ? data.skills : [],
+    declaration:
+      typeof data?.declaration === "string"
+        ? data.declaration
+        : "",
   };
 
   const resolvedTemplate =
